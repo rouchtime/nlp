@@ -83,6 +83,5 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 		FudanNLPTokenzierFactory factory = FudanNLPTokenzierFactory.getIstance();
 		@SuppressWarnings("unused")
 		StopWordTokenierFactory stopFactory = new StopWordTokenierFactory(factory);
-		TfIdfClassifierTrainer<E>
 	}
 }
