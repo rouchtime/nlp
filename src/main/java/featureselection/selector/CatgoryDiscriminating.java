@@ -17,9 +17,9 @@ import com.aliasi.util.ScoredObject;
 
 import corpus.FinanceNewsOrNonCorpus;
 import corpus.ICorpus;
-import featureselection.dataoperation.DataSource;
-import featureselection.dataoperation.DataSourceDTF;
-import featureselection.dataoperation.SimpleDataSourcePool;
+import dataoperation.DataSource;
+import dataoperation.DataSourceDTF;
+import dataoperation.SimpleDataSourcePool;
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
