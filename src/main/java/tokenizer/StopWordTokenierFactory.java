@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.aliasi.classify.TfIdfClassifierTrainer;
 import com.aliasi.tokenizer.ModifyTokenTokenizerFactory;
+import com.aliasi.tokenizer.TokenFeatureExtractor;
 import com.aliasi.tokenizer.TokenizerFactory;
 
 /**
@@ -81,5 +83,6 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 		FudanNLPTokenzierFactory factory = FudanNLPTokenzierFactory.getIstance();
 		@SuppressWarnings("unused")
 		StopWordTokenierFactory stopFactory = new StopWordTokenierFactory(factory);
+		TfIdfClassifierTrainer<E>
 	}
 }

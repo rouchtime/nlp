@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +22,7 @@ public class DataSourceDTF extends DataSource {
 	private Map<String, String> docToLabel;
 	private ObjectToCounterMap<String> labelCounter;
 	private ObjectToDoubleMap<String> labelWordCount;
+	private ObjectToDoubleMap<String> wordDF;
 
 	public DataSourceDTF() throws IOException {
 		super();
@@ -32,6 +34,7 @@ public class DataSourceDTF extends DataSource {
 		label_word_tf = HashBasedTable.create();
 		labelCounter = new ObjectToCounterMap<String>();
 		labelWordCount = new ObjectToDoubleMap<String>();
+		wordDF = new ObjectToDoubleMap<String>();
 		return false;
 	}
 
@@ -48,9 +51,14 @@ public class DataSourceDTF extends DataSource {
 			List<String> fileids = corpus.fileidsFromLabel(label);
 			for (String fileid : fileids) {// 遍历所有的文档
 				docToLabel.put(fileid, label);
+				Set<String> appearedWordIndoc = new HashSet<>();
 				// 记录在文档中已经出现的词
 				List<String> words = corpus.words(fileid);
 				for (String word : words) {
+					if (appearedWordIndoc.contains(word)) {
+						wordDF.increment(word, 1);
+						appearedWordIndoc.add(word);
+					}
 					addToMap(label_word_tf, label, word, 1.0);
 					labelWordCount.increment(cp, 1.0);
 				}
@@ -91,12 +99,16 @@ public class DataSourceDTF extends DataSource {
 
 	@Override
 	public double getDocCn(boolean useSlow) {
-		// TODO Auto-generated method stub
-		return 0;
+		double sum = 0.0;
+		for(String label : labelCounter.keySet()) {
+			sum += labelCounter.get(label).doubleValue();
+		}
+		return sum;
 	}
 
 	/**
 	 * 获得类别下词的数量
+	 * 
 	 * @param label
 	 * @param word
 	 * @return
@@ -109,6 +121,7 @@ public class DataSourceDTF extends DataSource {
 
 	/**
 	 * 获得文章的类别标注
+	 * 
 	 * @param doc
 	 * @return
 	 */
@@ -118,6 +131,7 @@ public class DataSourceDTF extends DataSource {
 
 	/**
 	 * 根据类别获得类别下的所有文章
+	 * 
 	 * @param label
 	 * @return
 	 */
@@ -133,12 +147,20 @@ public class DataSourceDTF extends DataSource {
 
 	/**
 	 * 获得类别下的总词频
+	 * 
 	 * @return
 	 */
 	public Double getLabelWordSize(String label) {
 		return labelWordCount.get(label);
 	}
-	
+
+	public double getWordDF(String word, boolean useSlow) {
+		if (wordDF.containsKey(word))
+			return wordDF.get(word);
+		else
+			return 0;
+	}
+
 	public static void main(String[] args) throws IOException {
 		Table<String, String, Double> doc_word_tf = HashBasedTable.create();
 		doc_word_tf.put("a", "b", (double) 1);
