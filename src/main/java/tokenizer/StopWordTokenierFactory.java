@@ -66,7 +66,7 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 			br = new BufferedReader(new InputStreamReader(is, "utf-8"));
 			String s = null;
 			while ((s = br.readLine()) != null) {
-				set.add(s);
+				set.add(s.trim());
 			}
 		} catch (FileNotFoundException e) {
 		} catch (IOException e) {

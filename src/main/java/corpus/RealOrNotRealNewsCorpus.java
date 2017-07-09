@@ -12,10 +12,13 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
 import com.hankcs.hanlp.HanLP;
 import com.hankcs.hanlp.seg.common.Term;
+
+import tokenizer.HanLPTokenizerFactory;
 
 public final class RealOrNotRealNewsCorpus implements ICorpus {
 
@@ -71,6 +74,13 @@ public final class RealOrNotRealNewsCorpus implements ICorpus {
 		}
 	}
 
+	public RealOrNotRealNewsCorpus(TokenizerFactory tokenizerFactory) {
+		this.tokenizerFactory = tokenizerFactory;
+	}
+	
+	public RealOrNotRealNewsCorpus() {
+		this.tokenizerFactory =  HanLPTokenizerFactory.getIstance();
+	}
 	@Override
 	public List<String> fileids() throws Exception {
 		List<String> fileids = new ArrayList<String>(titleToRawNewsMap.keySet());
@@ -92,8 +102,9 @@ public final class RealOrNotRealNewsCorpus implements ICorpus {
 		List<String> words = new ArrayList<String>();
 		String news = String.valueOf(titleToRawNewsMap.get(fileid));
 		String article = JSONObject.parseObject(news).getString("article");
-		for (Term term : HanLP.segment(article)) {
-			words.add(term.word);
+		Tokenizer tokenzier = tokenizerFactory.tokenizer(article.toCharArray(), 0, article.length());
+		for (String token:tokenzier) {
+			words.add(token.split("/")[0]);
 		}
 		return words;
 	}
@@ -150,6 +161,4 @@ public final class RealOrNotRealNewsCorpus implements ICorpus {
 		JSONObject jsonObject = JSONObject.parseObject(titleToRawNewsMap.get(fileid));
 		return jsonObject.getInteger("paraSize");
 	}
-	
->>>>>>> branch 'master' of https://github.com/rouchtime/nlp.git
 }

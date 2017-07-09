@@ -100,7 +100,7 @@ public class FinanceNewsOrNonCorpus implements ICorpus {
 		return jsonObject.getInteger("paraSize");
 	}
 	
-	private static String url = "D://corpus//realTimeOrNotNews//isnews_caijing.json";
+	private static String url = "/corpus/isnews_caijing.json";
 	private static Map<String, String> titleToRawNewsMap = new HashMap<String, String>();
 	private static Map<String, String> titleToLableMap = new HashMap<String, String>();
 	private static Map<String, List<String>> labelToTitleMap = new HashMap<String, List<String>>();

@@ -1,21 +1,14 @@
 package dataoperation;
 
-import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
-import com.aliasi.util.ObjectToSet;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Clock;
-import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by py on 16-9-21.
