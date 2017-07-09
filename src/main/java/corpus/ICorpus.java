@@ -47,4 +47,12 @@ public interface ICorpus {
 	public Set<String> labels();
 	
 	public List<String> fileidsFromLabel(String label);
+
+	String url(String fileid);
+
+	int picCount(String fileid);
+
+	int paraCount(String fileid);
+
+	String label(String fileid);
 }

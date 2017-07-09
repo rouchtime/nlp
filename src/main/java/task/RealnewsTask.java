@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 
 import corpus.FinanceNewsOrNonCorpus;
+import corpus.ICorpus;
 import corpus.RealOrNotRealNewsCorpus;
 import tokenizer.FudanNLPTokenzierFactory;
 
@@ -26,9 +27,10 @@ public class RealnewsTask {
 	}
 
 	public static void main(String[] args) throws IOException {
-		FudanNLPTokenzierFactory FudanNLP = FudanNLPTokenzierFactory.getIstance();
+		FudanNLPTokenzierFactory fudanNLP = FudanNLPTokenzierFactory.getIstance();
 //		FinanceNewsOrNonCorpus corpus = new FinanceNewsOrNonCorpus(FudanNLP);
-		RealOrNotRealNewsCorpus corpus = new RealOrNotRealNewsCorpus();
+//		RealOrNotRealNewsCorpus corpus = new RealOrNotRealNewsCorpus();
+		ICorpus corpus = new FinanceNewsOrNonCorpus(fudanNLP,"D://corpus//isnews_caijing.json");
 		for (String label : corpus.labels()) {
 			for (String title : corpus.fileidsFromLabel(label)) {
 				StringBuffer print = new StringBuffer();
@@ -44,7 +46,7 @@ public class RealnewsTask {
 				double person_name_count = 0;
 				/* 记录第一句中的具有时间短语的数量，如2016年7月1日等 */
 				String first_sents = corpus.sents(title).get(0);
-				for (String term : FudanNLP.tokenizer(first_sents.toCharArray(), 0, first_sents.length())) {
+				for (String term : fudanNLP.tokenizer(first_sents.toCharArray(), 0, first_sents.length())) {
 					if (term.split("/")[1].equals("时间短语")) {
 						first_sents_date_count++;
 					}
@@ -64,7 +66,7 @@ public class RealnewsTask {
 				
 				
 				/* 记录数词数量与文章长度比 */
-				for (String term : FudanNLP.tokenizer(corpus.raws(title).toCharArray(), 0, (int) raws_size)) {
+				for (String term : fudanNLP.tokenizer(corpus.raws(title).toCharArray(), 0, (int) raws_size)) {
 					if (term.split("/")[1].equals("数词")) {
 						numeral_count++;
 					}
@@ -95,7 +97,7 @@ public class RealnewsTask {
 				xun_word_count = calWordXunSize(firstSents);
 				
 				
-				for (String ner : FudanNLP.ner(corpus.raws(title).toCharArray(), 0, (int) raws_size)) {
+				for (String ner : fudanNLP.ner(corpus.raws(title).toCharArray(), 0, (int) raws_size)) {
 					if (ner.split("/")[1].equals("人名")) {
 						person_name_count++;
 					}
