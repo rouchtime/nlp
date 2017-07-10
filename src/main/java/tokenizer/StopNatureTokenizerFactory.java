@@ -1,5 +1,10 @@
 package tokenizer;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,9 +21,16 @@ public class StopNatureTokenizerFactory extends ModifyTokenTokenizerFactory impl
 
 	public StopNatureTokenizerFactory(TokenizerFactory factory, Set<String> stopSet) {
 		super(factory);
-		mStopSet = new HashSet<String>(stopSet);
+		InputStream is = getClass().getResourceAsStream("/stopnature");
+		mStopSet = readFromFileNames(is);
 	}
 
+	public StopNatureTokenizerFactory(TokenizerFactory factory) {
+		super(factory);
+		InputStream is = getClass().getResourceAsStream("/stopnature");
+		mStopSet = readFromFileNames(is);
+	}
+	
 	public Set<String> stopSet() {
 		return Collections.unmodifiableSet(mStopSet);
 	}
@@ -36,5 +48,25 @@ public class StopNatureTokenizerFactory extends ModifyTokenTokenizerFactory impl
 	public String toString() {
 		return this.getClass().getName() + "\n  stop set=" + mStopSet + "\n  base factory=\n    "
 				+ baseTokenizerFactory().toString().replace("\n", "\n    ");
+	}
+	public Set<String> readFromFileNames(InputStream is) {
+		BufferedReader br = null;
+		Set<String> set = new HashSet<String>();
+		try {
+			br = new BufferedReader(new InputStreamReader(is, "utf-8"));
+			String s = null;
+			while ((s = br.readLine()) != null) {
+				set.add(s);
+			}
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+		} finally {
+			try {
+				if (br != null)
+					br.close();
+			} catch (IOException e) {
+			}
+		}
+		return set;
 	}
 }

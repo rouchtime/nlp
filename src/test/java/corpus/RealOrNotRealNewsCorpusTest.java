@@ -2,10 +2,8 @@ package corpus;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,11 +12,6 @@ import org.fnlp.nlp.cn.CNFactory;
 import org.fnlp.util.exception.LoadModelException;
 
 import junit.framework.TestCase;
-import weka.attributeSelection.CorrelationAttributeEval;
-import weka.core.Attribute;
-import weka.core.DenseInstance;
-import weka.core.Instance;
-import weka.core.Instances;
 
 /**
  * 统计文章特征

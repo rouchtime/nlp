@@ -152,9 +152,9 @@ public class CatgoryDiscriminating implements WeightingMethod {
 
 
 	public static void main(String[] args) throws IOException {
-		StopWordTokenierFactory stopTokenizerFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		FinanceNewsOrNonCorpus corpus = new FinanceNewsOrNonCorpus(stopTokenizerFactory);
-		WeightingMethod weightingMethod = CatgoryDiscriminating.build(corpus);
-		weightingMethod.computeAndPrint("D://corpus//featureSelection//categoryDis_stopwords_hanLP");
+//		StopWordTokenierFactory stopTokenizerFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+//		FinanceNewsOrNonCorpus corpus = new FinanceNewsOrNonCorpus(stopTokenizerFactory);
+//		WeightingMethod weightingMethod = CatgoryDiscriminating.build(corpus);
+//		weightingMethod.computeAndPrint("D://corpus//featureSelection//categoryDis_stopwords_hanLP");
 	}
 }
