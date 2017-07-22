@@ -1,4 +1,4 @@
-package duplicate.minhash;
+package utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,9 +13,11 @@ import java.util.TreeSet;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.Pair;
 
+import duplicate.minhash.LSHMinHash;
+import duplicate.minhash.MinHash;
+import duplicate.minhash.NewsSig;
 import pojo.News;
 import pojo.Result;
-import utils.RegexUtils;
 
 public class DuplicateUtils {
 	private Map<String, Integer> wordIndexMap;
