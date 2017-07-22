@@ -42,9 +42,8 @@ public class DuplicateUtils {
 		bOWList = new LinkedList<NewsSig>();
 		wordIndexMap = new HashMap<String, Integer>();
 		try {
-			initWordIndex(dupNewsList);
 			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
-			initHashes(dupNewsList);
+			initWordIndexAndHashes(dupNewsList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -108,15 +107,19 @@ public class DuplicateUtils {
 	 * 
 	 * @param dupNewsList
 	 */
-	private void initHashes(List<News> dupNewsList) {
+	private void initWordIndexAndHashes(List<News> dupNewsList) {
 		long startTime = System.currentTimeMillis();
+		wordIndexMap = new HashMap<String, Integer>();
 		for (int i = 0; i < dupNewsList.size() && bOWList.size() < this.maxQueueSize; i++) {
 			String article = dupNewsList.get(i).getArticle();
 			String id = dupNewsList.get(i).getId();
-
+			Integer wordIndex = 0;
 			Set<Integer> vector = new TreeSet<Integer>();
 			for (String token : factory.tokenizer(article.toCharArray(), 0, article.length())) {
 				String word = token.split("/")[0];
+				if (wordIndexMap.get(word) == null) {
+					wordIndexMap.put(word, wordIndex++);
+				}
 				vector.add(wordIndexMap.get(word));
 			}
 			int[] hash = lshMinHash.hash(vector);
@@ -129,34 +132,6 @@ public class DuplicateUtils {
 		}
 		long endTime = System.currentTimeMillis();
 		System.out.println(String.format("计算hash时间:%d", (endTime - startTime) / 1000));
-	}
-
-	/**
-	 * 构建字典索引，后期可以淘汰这种做法，直接使用词来做hash，节省了构建字典时间
-	 * 
-	 * @param dupNewsList
-	 * @throws Exception
-	 */
-	private void initWordIndex(List<News> dupNewsList){
-		long startTime = System.currentTimeMillis();
-		wordIndexMap = new HashMap<String, Integer>();
-		Integer wordIndex = 0;
-		for (int i = 0; i < dupNewsList.size() && dupNewsList.size() < maxQueueSize; i++) {
-			String article = dupNewsList.get(i).getArticle();
-			for (String token : this.factory.tokenizer(article.toCharArray(), 0, article.length())) {
-				try {
-					String word = token.split("/")[0];
-					if (wordIndexMap.get(word) == null) {
-						wordIndexMap.put(word, wordIndex++);
-					}
-				} catch (Exception e) {
-					System.out.println(token);
-				}
-			}
-		}
-		this.dicSize = wordIndex;
-		long endTime = System.currentTimeMillis();
-		System.out.println(String.format("计算词索引时间:%d", (endTime - startTime) / 1000));
 	}
 
 	/**
