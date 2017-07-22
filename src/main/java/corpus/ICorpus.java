@@ -3,6 +3,8 @@ package corpus;
 import java.util.List;
 import java.util.Set;
 
+import pojo.News;
+
 /**
  * 
  * @author 龚帅宾
@@ -45,8 +47,6 @@ public interface ICorpus {
 	public String path();
 	
 	public Set<String> labels();
-	
-	public List<String> fileidsFromLabel(String label);
 
 	String url(String fileid);
 
@@ -55,4 +55,7 @@ public interface ICorpus {
 	int paraCount(String fileid);
 
 	String label(String fileid);
+
+	List<News> newsFromLabel(String label);
+
 }

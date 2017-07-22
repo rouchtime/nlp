@@ -5,6 +5,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
+import pojo.News;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -52,13 +53,13 @@ public class DataSourceDF extends DataSource {
 		Set<String> labels = corpus.labels();
 		for (String cp : labels) { // 遍历每个类别文件夹，读取文档
 			String label = cp; // 类别名称
-			List<String> fileids = corpus.fileidsFromLabel(label);
+			List<News> newsList = corpus.newsFromLabel(label);
 			// 修改该类别的文档频率
-			labelDF.increment(label, fileids.size());
-			for (String fileid : fileids) {// 遍历所有的文档
+			labelDF.increment(label, newsList.size());
+			for (News news : newsList) {// 遍历所有的文档
 				// 记录在文档中已经出现的词
 				Set<String> appearedWordIndoc = new HashSet<>();
-				List<String> words = corpus.words(fileid);
+				List<String> words = corpus.words(news.getTitle());
 				for (String word : words) {
 					if (appearedWordIndoc.contains(word)) {
 						wordDF.increment(word, 1);

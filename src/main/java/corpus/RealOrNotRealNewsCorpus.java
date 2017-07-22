@@ -11,11 +11,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
 
+import pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
 public final class RealOrNotRealNewsCorpus extends BaseCorpus {
@@ -24,13 +27,14 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 	private Map<String, List<String>> categoryToTitle;
 	private Set<String> categories;
 
-	public RealOrNotRealNewsCorpus(TokenizerFactory tokenizerFactory, String path) throws IOException {
-		super(path, tokenizerFactory);
+	public RealOrNotRealNewsCorpus(TokenizerFactory tokenizerFactory, String path, double trainRate)
+			throws IOException {
+		super(path, tokenizerFactory, trainRate);
 		this.tokenizerFactory = tokenizerFactory;
 	}
 
 	public RealOrNotRealNewsCorpus(String path) throws IOException {
-		super(path, HanLPTokenizerFactory.getIstance());
+		super(path, HanLPTokenizerFactory.getIstance(), 0.9);
 	}
 
 	public List<String> fileidsFromCategory(String category) {
@@ -48,8 +52,8 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 
 	@Override
 	protected void createCorpusToRAM() {
-		titleTocategoryMap = new HashMap<String,String>();
-		categoryToTitle = new HashMap<String,List<String>>();
+		titleTocategoryMap = new HashMap<String, String>();
+		categoryToTitle = new HashMap<String, List<String>>();
 		categories = new HashSet<String>();
 		try {
 			BufferedReader reader = new BufferedReader(
@@ -57,23 +61,27 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 			String line = reader.readLine();
 			while (line != null) {
 				String title = JSONObject.parseObject(line).getString("title");
-				String lable = JSONObject.parseObject(line).getString("label");
+				String article = JSONObject.parseObject(line).getString("article");
+				String label = JSONObject.parseObject(line).getString("label");
 				String category = JSONObject.parseObject(line).getString("category");
 				String url = JSONObject.parseObject(line).getString("url");
-				titleToRawNewsMap.put(title, line);
-				titleToLableMap.put(title, lable);
-				titleToURLMap.put(title, url);
+				News news = new News();
+				news.setArticle(article);
+				news.setCategory(category);
+				news.setLabel(label);
+				news.setUrl(url);
+				news.setTitle(title);
+				newsMap_key_title.put(title, news);
 				titleTocategoryMap.put(title, category);
-				labels.add(lable);
+				labels.add(label);
 				categories.add(category);
-				if (labelToTitleMap.get(lable) != null) {
-					List<String> titles = labelToTitleMap.get(lable);
-					titles.add(title);
+				if (labelToNewsMap.get(label) != null) {
+					List<News> titles = labelToNewsMap.get(label);
+					titles.add(news);
 				} else {
-					List<String> titles = new ArrayList<String>();
-					labelToTitleMap.put(lable, titles);
+					List<News> newses = new ArrayList<News>();
+					labelToNewsMap.put(label, newses);
 				}
-
 				if (categoryToTitle.get(category) != null) {
 					List<String> titles = categoryToTitle.get(category);
 					titles.add(title);
@@ -87,6 +95,7 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
 	}
+
 	public static void main(String[] args) throws Exception {
 		BaseCorpus corpus = new FinanceNewsOrNonCorpus("D://corpus//isnews_caijing.json");
 		System.out.println(corpus.fileids().size());
