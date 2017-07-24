@@ -5,6 +5,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
+import pojo.News;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,9 +50,9 @@ public class DataSourceTF extends DataSource {
 
 			String label = cp;// 类别名称
 			int wordCount = 0;
-			List<String> fileids = corpus.fileidsFromLabel(label);
-			for (String fileid : fileids) {
-				List<String> words = corpus.words(fileid);
+			List<News> fileids = corpus.newsFromLabel(label);
+			for (News fileid : fileids) {
+				List<String> words = corpus.words(fileid.getTitle());
 				wordCount += words.size();
 				for (String word : words) {
 					wordTF.increment(word, 1.0);

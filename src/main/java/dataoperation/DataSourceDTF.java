@@ -15,6 +15,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
+import pojo.News;
 
 public class DataSourceDTF extends DataSource {
 
@@ -48,12 +49,12 @@ public class DataSourceDTF extends DataSource {
 		for (String cp : labels) { // 遍历每个类别文件夹，读取文档
 			String label = cp; // 类别名称
 			labelCounter.increment(label, 1);
-			List<String> fileids = corpus.fileidsFromLabel(label);
-			for (String fileid : fileids) {// 遍历所有的文档
-				docToLabel.put(fileid, label);
+			List<News> newsList = corpus.newsFromLabel(label);
+			for (News news : newsList) {// 遍历所有的文档
+				docToLabel.put(news.getTitle(), label);
 				Set<String> appearedWordIndoc = new HashSet<>();
 				// 记录在文档中已经出现的词
-				List<String> words = corpus.words(fileid);
+				List<String> words = corpus.words(news.getTitle());
 				for (String word : words) {
 					if (appearedWordIndoc.contains(word)) {
 						wordDF.increment(word, 1);

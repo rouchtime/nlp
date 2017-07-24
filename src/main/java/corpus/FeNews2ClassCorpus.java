@@ -6,35 +6,32 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 import org.apache.commons.io.Charsets;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import com.aliasi.corpus.Corpus;
+import com.aliasi.corpus.DiskCorpus;
+import com.aliasi.corpus.StringParser;
+import com.aliasi.corpus.XValidatingObjectCorpus;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
-public class FinanceNewsOrNonCorpus extends BaseCorpus {
+public class FeNews2ClassCorpus extends BaseCorpus {
 
-	public FinanceNewsOrNonCorpus(TokenizerFactory tokenizerFactory, String path, double trainRate) throws IOException {
-		super(path, tokenizerFactory, trainRate);
+	public FeNews2ClassCorpus(String path, TokenizerFactory factory,double trainRate) throws IOException {
+		super(path, factory,trainRate);
 	}
 
-	/*
-	 * 默认为HanLP分词器
-	 */
-	public FinanceNewsOrNonCorpus(String path) throws IOException {
-		super(path, HanLPTokenizerFactory.getIstance(), 0.9);
+	public FeNews2ClassCorpus(String path) throws IOException {
+		super(path, HanLPTokenizerFactory.getIstance(),0.9);
 	}
 
+	
 	@Override
 	protected void createCorpusToRAM() {
 		try {
@@ -65,6 +62,6 @@ public class FinanceNewsOrNonCorpus extends BaseCorpus {
 		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
-
 	}
+
 }

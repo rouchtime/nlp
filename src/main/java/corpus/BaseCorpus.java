@@ -1,57 +1,94 @@
 package corpus;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
+import com.aliasi.corpus.Corpus;
+import com.aliasi.corpus.Handler;
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
 
+import pojo.News;
+
 public abstract class BaseCorpus implements ICorpus {
-	protected Map<String, String> titleToRawNewsMap;
-	protected Map<String, String> titleToLableMap;
-	protected Map<String, List<String>> labelToTitleMap;
-	protected Map<String, String> titleToURLMap;
 	protected Set<String> labels;
 	protected TokenizerFactory tokenizerFactory;
+	protected Set<News> trainSet;
+	protected Set<News> testSet;
+	protected Map<String,News> newsMap_key_title;
+	protected Map<String,News> idNewsMap;
+	protected Map<String,List<News>> labelToNewsMap;
 	protected String path;
 
-	public BaseCorpus(String path, TokenizerFactory factory) throws IOException {
+	public BaseCorpus(String path, TokenizerFactory factory, double trainRate) throws IOException {
 		this.path = path;
-		titleToRawNewsMap = new HashMap<String, String>();
-		titleToLableMap = new HashMap<String, String>();
-		labelToTitleMap = new HashMap<String, List<String>>();
-		titleToURLMap = new HashMap<String, String>();
+		trainSet = new HashSet<News>();
+		testSet = new HashSet<News>();
+		newsMap_key_title = new HashMap<String,News>();
+		labelToNewsMap = new HashMap<String, List<News>>(); 
+		idNewsMap = new HashMap<String,News>();
 		labels = new HashSet<String>();
 		this.tokenizerFactory = factory;
 		/* 将语料放入内存中 */
 		createCorpusToRAM();
+		createTrainAndTestCorpus(trainRate);
+	}
+
+	private void createTrainAndTestCorpus(double trainRate) {
+		for (String label : labelToNewsMap.keySet()) {
+			List<News> linkedList = new LinkedList<News>(labelToNewsMap.get(label));
+			int trainSize = (int) (linkedList.size() * trainRate);
+			int randomSize = linkedList.size();
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(System.currentTimeMillis());
+				int rIndex = r.nextInt(randomSize);
+				trainSet.add(linkedList.get(rIndex));
+				linkedList.remove(rIndex);
+				randomSize--;
+			}
+			for(News news : linkedList) {
+				testSet.add(news);
+			}
+		}
+
 	}
 
 	@Override
 	public List<String> fileids() throws Exception {
-		List<String> fileids = new ArrayList<String>(titleToRawNewsMap.keySet());
+		List<String> fileids = new ArrayList<String>(newsMap_key_title.keySet());
 		return fileids;
 	}
 
 	@Override
-	public List<String> fileidsFromLabel(String label) {
-		List<String> filedis = labelToTitleMap.get(label);
+	public List<News> newsFromLabel(String label) {
+		List<News> filedis = labelToNewsMap.get(label);
 		return filedis;
 	}
 
 	@Override
 	public List<String> words(String fileid) {
+
 		List<String> words = new ArrayList<String>();
-		String news = String.valueOf(titleToRawNewsMap.get(fileid));
-		String article = JSONObject.parseObject(news).getString("article");
-		Tokenizer tokenzier = tokenizerFactory.tokenizer(article.toCharArray(), 0, article.length());
-		for (String token : tokenzier) {
-			words.add(token.split("/")[0]);
+		try {
+			String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+			if (news.equals("null") || news.equals("")) {
+				return null;
+			}
+			String article = news;
+			Tokenizer tokenzier = tokenizerFactory.tokenizer(article.toCharArray(), 0, article.length());
+			for (String token : tokenzier) {
+				words.add(token.split("/")[0]);
+			}
+		} catch (Exception e) {
+			return null;
 		}
 		return words;
 	}
@@ -59,11 +96,19 @@ public abstract class BaseCorpus implements ICorpus {
 	@Override
 	public List<String> sents(String fileid) {
 		List<String> sents = new ArrayList<String>();
-		String news = String.valueOf(titleToRawNewsMap.get(fileid));
-		String article = JSONObject.parseObject(news).getString("article");
-		String[] sentences = article.split("！|。|？|；");
-		for (String sentence : sentences) {
-			sents.add(sentence);
+		String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+		try {
+			if (news.equals("null") || news.equals("")) {
+				return null;
+			}
+			String article = news;
+			String[] sentences = article.split("！|。|？|；");
+			for (String sentence : sentences) {
+				sents.add(sentence);
+			}
+		} catch (Exception e) {
+			System.err.println("错误语料：\t\t\t" + news);
+			return null;
 		}
 		return sents;
 	}
@@ -75,14 +120,13 @@ public abstract class BaseCorpus implements ICorpus {
 
 	@Override
 	public String label(String fileid) {
-		return titleToLableMap.get(fileid);
+		return newsMap_key_title.get(fileid).getLabel();
 	}
 
 	@Override
 	public String raws(String fileid) {
-		String news = String.valueOf(titleToRawNewsMap.get(fileid));
-		String article = JSONObject.parseObject(news).getString("article");
-		return article;
+		String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+		return news;
 	}
 
 	@Override
@@ -92,20 +136,26 @@ public abstract class BaseCorpus implements ICorpus {
 
 	@Override
 	public String url(String fileid) {
-		return titleToURLMap.get(fileid);
+		return newsMap_key_title.get(fileid).getUrl();
 	}
 
 	@Override
 	public int picCount(String fileid) {
-		JSONObject jsonObject = JSONObject.parseObject(titleToRawNewsMap.get(fileid));
-		return jsonObject.getInteger("imgSize");
+		return newsMap_key_title.get(fileid).getPicSize();
 	}
 
 	@Override
 	public int paraCount(String fileid) {
-		JSONObject jsonObject = JSONObject.parseObject(titleToRawNewsMap.get(fileid));
-		return jsonObject.getInteger("paraSize");
+		return newsMap_key_title.get(fileid).getPageSize();
 	}
 
+	public Set<News> train(){
+		return trainSet;
+	} 
+	
+	public Set<News> test(){
+		return testSet;
+	}
+	
 	protected abstract void createCorpusToRAM();
 }
