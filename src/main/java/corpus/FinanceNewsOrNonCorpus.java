@@ -51,14 +51,14 @@ public class FinanceNewsOrNonCorpus extends BaseCorpus {
 				news.setLabel(label);
 				news.setTitle(title);
 				news.setUrl(url);
-				newsMap_key_title.put(title, news);
+				titleNewsMap.put(title, news);
 				labels.add(label);
-				if (labelToNewsMap.get(label) != null) {
-					List<News> titles = labelToNewsMap.get(label);
+				if (labelNewsMap.get(label) != null) {
+					List<News> titles = labelNewsMap.get(label);
 					titles.add(news);
 				} else {
 					List<News> newses = new ArrayList<News>();
-					labelToNewsMap.put(label, newses);
+					labelNewsMap.put(label, newses);
 				}
 				line = reader.readLine();
 			}
@@ -66,5 +66,24 @@ public class FinanceNewsOrNonCorpus extends BaseCorpus {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
 
+	}
+
+	@Override
+	protected void createTrainAndTestCorpus(double trainRate) {
+		for (String label : labelNewsMap.keySet()) {
+			List<News> linkedList = new LinkedList<News>(labelNewsMap.get(label));
+			int trainSize = (int) (linkedList.size() * trainRate);
+			int randomSize = linkedList.size();
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(System.currentTimeMillis());
+				int rIndex = r.nextInt(randomSize);
+				trainSet.add(linkedList.get(rIndex));
+				linkedList.remove(rIndex);
+				randomSize--;
+			}
+			for (News news : linkedList) {
+				testSet.add(news);
+			}
+		}
 	}
 }

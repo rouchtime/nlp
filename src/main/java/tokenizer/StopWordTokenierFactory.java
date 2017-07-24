@@ -36,7 +36,7 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 	 */
 	public StopWordTokenierFactory(TokenizerFactory factory) {
 		super(factory);
-		InputStream is = getClass().getResourceAsStream("/stopwords");
+		InputStream is = getClass().getResourceAsStream("/stopwords.txt");
 		mStopSet = readFromFileNames(is);
 	}
 
