@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
@@ -18,16 +20,17 @@ import com.alibaba.fastjson.JSONObject;
 import pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
-public class NonLabelRawCorpus extends BaseCorpus{
+public class NonLabelRawCorpus extends BaseCorpus {
 
-	public NonLabelRawCorpus(TokenizerFactory factory,String path,double trainRate) throws IOException {
-		super(path, factory,trainRate);
+	public NonLabelRawCorpus(TokenizerFactory factory, String path, double trainRate) throws IOException {
+		super(path, factory, trainRate);
 		this.tokenizerFactory = factory;
 	}
+
 	public NonLabelRawCorpus(String path) throws IOException {
-		super(path, HanLPTokenizerFactory.getIstance(),0.9);
+		super(path, HanLPTokenizerFactory.getIstance(), 0.9);
 	}
-	
+
 	@Override
 	protected void createCorpusToRAM() {
 		try {
@@ -42,11 +45,30 @@ public class NonLabelRawCorpus extends BaseCorpus{
 				news.setArticle(article);
 				news.setTitle(title);
 				news.setUrl(url);
-				newsMap_key_title.put(title, news);
+				titleNewsMap.put(title, news);
 				line = reader.readLine();
 			}
 		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
+		}
+	}
+
+	@Override
+	protected void createTrainAndTestCorpus(double trainRate) {
+		for (String label : labelNewsMap.keySet()) {
+			List<News> linkedList = new LinkedList<News>(labelNewsMap.get(label));
+			int trainSize = (int) (linkedList.size() * trainRate);
+			int randomSize = linkedList.size();
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(System.currentTimeMillis());
+				int rIndex = r.nextInt(randomSize);
+				trainSet.add(linkedList.get(rIndex));
+				linkedList.remove(rIndex);
+				randomSize--;
+			}
+			for (News news : linkedList) {
+				testSet.add(news);
+			}
 		}
 	}
 }

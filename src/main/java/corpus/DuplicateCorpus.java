@@ -6,8 +6,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -41,7 +43,7 @@ public class DuplicateCorpus extends BaseCorpus {
 				String article = jsonObject.getString("article");
 				String url = jsonObject.getString("url");
 				String id = jsonObject.getString("id");
-				if(id==null) {
+				if (id == null) {
 					id = idCount.toString();
 					idCount++;
 				}
@@ -52,18 +54,31 @@ public class DuplicateCorpus extends BaseCorpus {
 				news.setTitle(title);
 				idNewsMap.put(id, news);
 				line = reader.readLine();
-				
+
 			}
 		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
 	}
-	
-	public Map<String,News> getAllNewsIdMap(){
-		return  idNewsMap;
+
+	public Map<String, News> getAllNewsIdMap() {
+		return idNewsMap;
 	}
- 	
-	public static void main(String[] args) {
-		
+
+	@Override
+	protected void createTrainAndTestCorpus(double trainRate) {
+		LinkedList<News> list = new LinkedList<News>(idNewsMap.values());
+		int trainNum = (int) (idNewsMap.keySet().size() * trainRate);
+		int randomSize = idNewsMap.keySet().size();
+		for (int i = 0; i < trainNum; i++) {
+			Random r = new Random(System.currentTimeMillis());
+			int rIndex = r.nextInt(randomSize);
+			trainSet.add(list.get(rIndex));
+			list.remove(rIndex);
+			randomSize--;
+		}
+		for(News news : list) {
+			testSet.add(news);
+		}
 	}
 }

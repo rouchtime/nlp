@@ -1,21 +1,24 @@
 package pojo;
 
-import java.util.List;
-
 public class Result {
-	private String id;
+	private News news;
+
+	public News getNews() {
+		return news;
+	}
+
+	public void setNews(News news) {
+		this.news = news;
+	}
+
 	private double similariy;
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
+
 	public double getSimilariy() {
 		return similariy;
 	}
+
 	public void setSimilariy(double similariy) {
 		this.similariy = similariy;
 	}
-	
+
 }

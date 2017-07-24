@@ -23,17 +23,17 @@ public abstract class BaseCorpus implements ICorpus {
 	protected TokenizerFactory tokenizerFactory;
 	protected Set<News> trainSet;
 	protected Set<News> testSet;
-	protected Map<String,News> newsMap_key_title;
+	protected Map<String,News> titleNewsMap;
 	protected Map<String,News> idNewsMap;
-	protected Map<String,List<News>> labelToNewsMap;
+	protected Map<String,List<News>> labelNewsMap;
 	protected String path;
 
 	public BaseCorpus(String path, TokenizerFactory factory, double trainRate) throws IOException {
 		this.path = path;
 		trainSet = new HashSet<News>();
 		testSet = new HashSet<News>();
-		newsMap_key_title = new HashMap<String,News>();
-		labelToNewsMap = new HashMap<String, List<News>>(); 
+		titleNewsMap = new HashMap<String,News>();
+		labelNewsMap = new HashMap<String, List<News>>(); 
 		idNewsMap = new HashMap<String,News>();
 		labels = new HashSet<String>();
 		this.tokenizerFactory = factory;
@@ -42,34 +42,17 @@ public abstract class BaseCorpus implements ICorpus {
 		createTrainAndTestCorpus(trainRate);
 	}
 
-	private void createTrainAndTestCorpus(double trainRate) {
-		for (String label : labelToNewsMap.keySet()) {
-			List<News> linkedList = new LinkedList<News>(labelToNewsMap.get(label));
-			int trainSize = (int) (linkedList.size() * trainRate);
-			int randomSize = linkedList.size();
-			for (int i = 0; i < trainSize; i++) {
-				Random r = new Random(System.currentTimeMillis());
-				int rIndex = r.nextInt(randomSize);
-				trainSet.add(linkedList.get(rIndex));
-				linkedList.remove(rIndex);
-				randomSize--;
-			}
-			for(News news : linkedList) {
-				testSet.add(news);
-			}
-		}
-
-	}
+	protected abstract void createTrainAndTestCorpus(double trainRate);
 
 	@Override
 	public List<String> fileids() throws Exception {
-		List<String> fileids = new ArrayList<String>(newsMap_key_title.keySet());
+		List<String> fileids = new ArrayList<String>(titleNewsMap.keySet());
 		return fileids;
 	}
 
 	@Override
 	public List<News> newsFromLabel(String label) {
-		List<News> filedis = labelToNewsMap.get(label);
+		List<News> filedis = labelNewsMap.get(label);
 		return filedis;
 	}
 
@@ -78,7 +61,7 @@ public abstract class BaseCorpus implements ICorpus {
 
 		List<String> words = new ArrayList<String>();
 		try {
-			String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+			String news = String.valueOf(titleNewsMap.get(fileid).getArticle());
 			if (news.equals("null") || news.equals("")) {
 				return null;
 			}
@@ -96,7 +79,7 @@ public abstract class BaseCorpus implements ICorpus {
 	@Override
 	public List<String> sents(String fileid) {
 		List<String> sents = new ArrayList<String>();
-		String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+		String news = String.valueOf(titleNewsMap.get(fileid).getArticle());
 		try {
 			if (news.equals("null") || news.equals("")) {
 				return null;
@@ -120,12 +103,12 @@ public abstract class BaseCorpus implements ICorpus {
 
 	@Override
 	public String label(String fileid) {
-		return newsMap_key_title.get(fileid).getLabel();
+		return titleNewsMap.get(fileid).getLabel();
 	}
 
 	@Override
 	public String raws(String fileid) {
-		String news = String.valueOf(newsMap_key_title.get(fileid).getArticle());
+		String news = String.valueOf(titleNewsMap.get(fileid).getArticle());
 		return news;
 	}
 
@@ -136,17 +119,17 @@ public abstract class BaseCorpus implements ICorpus {
 
 	@Override
 	public String url(String fileid) {
-		return newsMap_key_title.get(fileid).getUrl();
+		return titleNewsMap.get(fileid).getUrl();
 	}
 
 	@Override
 	public int picCount(String fileid) {
-		return newsMap_key_title.get(fileid).getPicSize();
+		return titleNewsMap.get(fileid).getPicSize();
 	}
 
 	@Override
 	public int paraCount(String fileid) {
-		return newsMap_key_title.get(fileid).getPageSize();
+		return titleNewsMap.get(fileid).getPageSize();
 	}
 
 	public Set<News> train(){

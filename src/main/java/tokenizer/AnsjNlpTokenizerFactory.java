@@ -1,4 +1,6 @@
 package tokenizer;
+
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,6 @@ public class AnsjNlpTokenizerFactory implements Serializable, TokenizerFactory {
 	private AnsjNlpTokenizerFactory() {
 //		String pPath = AnsjNlpTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 //		modelPath = new File(pPath).getParent() + "/library/dictionary_20170418_ansj.dic";
-//		modelPath = getClass().getClassLoader().getResource("library//dictionary_20170418_ansj.dic").getPath();
 //		dicLibrary = new DicLibrary();
 //		dicLibrary.put("userdefine", modelPath);
 	}
@@ -50,7 +51,7 @@ public class AnsjNlpTokenizerFactory implements Serializable, TokenizerFactory {
 		private List<String> parse = new ArrayList<String>();
 		private int currentPos = -1;
 
-//		@SuppressWarnings("static-access")
+		@SuppressWarnings("static-access")
 		public AnsjNlpTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
 //			Result result = NlpAnalysis.parse(text, dicLibrary.get("userdefine"));

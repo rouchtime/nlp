@@ -8,8 +8,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.io.Charsets;
@@ -71,16 +73,16 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 				news.setLabel(label);
 				news.setUrl(url);
 				news.setTitle(title);
-				newsMap_key_title.put(title, news);
+				titleNewsMap.put(title, news);
 				titleTocategoryMap.put(title, category);
 				labels.add(label);
 				categories.add(category);
-				if (labelToNewsMap.get(label) != null) {
-					List<News> titles = labelToNewsMap.get(label);
+				if (labelNewsMap.get(label) != null) {
+					List<News> titles = labelNewsMap.get(label);
 					titles.add(news);
 				} else {
 					List<News> newses = new ArrayList<News>();
-					labelToNewsMap.put(label, newses);
+					labelNewsMap.put(label, newses);
 				}
 				if (categoryToTitle.get(category) != null) {
 					List<String> titles = categoryToTitle.get(category);
@@ -93,6 +95,25 @@ public final class RealOrNotRealNewsCorpus extends BaseCorpus {
 			}
 		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
+		}
+	}
+
+	@Override
+	protected void createTrainAndTestCorpus(double trainRate) {
+		for (String label : labelNewsMap.keySet()) {
+			List<News> linkedList = new LinkedList<News>(labelNewsMap.get(label));
+			int trainSize = (int) (linkedList.size() * trainRate);
+			int randomSize = linkedList.size();
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(System.currentTimeMillis());
+				int rIndex = r.nextInt(randomSize);
+				trainSet.add(linkedList.get(rIndex));
+				linkedList.remove(rIndex);
+				randomSize--;
+			}
+			for (News news : linkedList) {
+				testSet.add(news);
+			}
 		}
 	}
 
