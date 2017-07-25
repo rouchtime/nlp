@@ -15,7 +15,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
-import pojo.News;
+import duplicate.pojo.News;
 
 public class DataSourceDTF extends DataSource {
 

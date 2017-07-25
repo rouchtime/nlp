@@ -2,7 +2,7 @@ package duplicate.minhash;
 
 import java.util.Set;
 
-import pojo.News;
+import duplicate.pojo.News;
 
 public class NewsSig extends News{
 	private int[] hash;

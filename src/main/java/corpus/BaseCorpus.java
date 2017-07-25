@@ -15,8 +15,7 @@ import com.aliasi.corpus.Handler;
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
-
-import pojo.News;
+import duplicate.pojo.News;
 
 public abstract class BaseCorpus implements ICorpus {
 	protected Set<String> labels;

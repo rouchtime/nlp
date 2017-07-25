@@ -1,18 +1,16 @@
 package dataoperation;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.util.List;
+import java.util.Set;
+
 import com.aliasi.util.ObjectToDoubleMap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
-import pojo.News;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Clock;
-import java.util.*;
+import duplicate.pojo.News;
 
 /**
  * Created by py on 16-9-21.

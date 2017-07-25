@@ -13,14 +13,10 @@ import java.util.Random;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.aliasi.corpus.Corpus;
-import com.aliasi.corpus.DiskCorpus;
-import com.aliasi.corpus.StringParser;
-import com.aliasi.corpus.XValidatingObjectCorpus;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
 
-import pojo.News;
+import duplicate.pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
 public class FeNews2ClassCorpus extends BaseCorpus {

@@ -1,4 +1,4 @@
-package pojo;
+package duplicate.pojo;
 
 public class News {
 	private String id; 

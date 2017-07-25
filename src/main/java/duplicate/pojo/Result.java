@@ -1,4 +1,4 @@
-package pojo;
+package duplicate.pojo;
 
 public class Result {
 	private News news;

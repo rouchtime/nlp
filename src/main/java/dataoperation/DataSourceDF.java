@@ -5,7 +5,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
 import corpus.ICorpus;
-import pojo.News;
+import duplicate.pojo.News;
 
 import java.io.IOException;
 import java.time.Clock;

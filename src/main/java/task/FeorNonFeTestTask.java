@@ -11,7 +11,7 @@ import org.apache.commons.io.FileUtils;
 import com.aliasi.classify.ConfusionMatrix;
 
 import corpus.FeNews2ClassCorpus;
-import pojo.News;
+import duplicate.pojo.News;
 import tokenizer.FudanNLPTokenzierFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;

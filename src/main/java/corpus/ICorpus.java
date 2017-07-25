@@ -3,7 +3,7 @@ package corpus;
 import java.util.List;
 import java.util.Set;
 
-import pojo.News;
+import duplicate.pojo.News;
 
 /**
  * 
