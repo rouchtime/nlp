@@ -17,7 +17,6 @@ public interface ICorpus {
 	 * @throws Exception
 	 */
 	public List<String> fileids() throws Exception;
-	
 	/**
 	 * 根据fileid获得分词
 	 * @param fileid 标题

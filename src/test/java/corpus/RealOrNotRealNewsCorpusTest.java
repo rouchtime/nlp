@@ -4,12 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.fnlp.nlp.cn.CNFactory;
 import org.fnlp.util.exception.LoadModelException;
+import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+
+import com.alibaba.fastjson.JSONObject;
 
 import junit.framework.TestCase;
 
@@ -18,7 +24,8 @@ import junit.framework.TestCase;
  * @author 龚帅宾
  *
  */
-public class RealOrNotRealNewsCorpusTest extends TestCase {
+@ContextConfiguration(locations = {"classpath:spring-mybatis.xml"})  
+public class RealOrNotRealNewsCorpusTest extends AbstractJUnit4SpringContextTests {
 //	/**
 //	 * 统计新闻文本中第一句子中，时间特征的数量
 //	 * 
@@ -345,4 +352,34 @@ public class RealOrNotRealNewsCorpusTest extends TestCase {
 //
 //	
 //	
-}
+	@Test
+	public void caijingTest() throws IOException {
+		List<String> linesTotal = FileUtils.readLines(new File("D:\\corpus\\realTimeOrNotNews\\total_new_caijing.json"), "utf-8");
+		Map<String,String> map = new HashMap<String,String>();
+		Map<String,String> map2 = new HashMap<String,String>();
+		for(String line : linesTotal) {
+			JSONObject jsonObject = JSONObject.parseObject(line);
+			String cleanFileid = jsonObject.getString("title").replaceAll("[\\p{P}+~$`^=|<>～｀＄＾＋＝｜＜＞￥×]", "");
+			map.put(cleanFileid, jsonObject.getString("url"));
+			map2.put(cleanFileid, jsonObject.getString("title"));
+		}
+		List<String> linesCaijing = FileUtils.readLines(new File("D:\\corpus\\corpus\\new_fe_corpus.json"), "utf-8");
+		for(String line : linesCaijing) {
+			JSONObject jsonObject = JSONObject.parseObject(line);
+			String title = jsonObject.getString("title");
+			String url = map.get(title);
+			String rawtitle = map2.get(title);
+			if(url == null) {
+				System.out.println(url);
+				continue;
+			}
+			if(rawtitle == null) {
+				System.out.println(rawtitle);
+				continue;
+			}
+			jsonObject.put("url", url);
+			jsonObject.put("title", rawtitle);
+			FileUtils.write(new File("D:\\corpus\\corpus\\new_fe_corpus_url.json"), jsonObject.toJSONString()+ "\n","utf-8",true);
+		}
+	}
+ }
