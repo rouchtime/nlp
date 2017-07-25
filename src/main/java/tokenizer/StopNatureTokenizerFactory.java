@@ -27,7 +27,7 @@ public class StopNatureTokenizerFactory extends ModifyTokenTokenizerFactory impl
 
 	public StopNatureTokenizerFactory(TokenizerFactory factory) {
 		super(factory);
-		InputStream is = getClass().getResourceAsStream("/stopnature");
+		InputStream is = getClass().getResourceAsStream("/stopnature.txt");
 		mStopSet = readFromFileNames(is);
 	}
 	

@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import com.alibaba.fastjson.JSONObject;
-
 import corpus.DuplicateCorpus;
 import junit.framework.TestCase;
 import pojo.News;

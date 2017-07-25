@@ -153,6 +153,7 @@ public class DuplicateUtils {
 				String word = token.split(Contants.SLASH)[0];
 				if (wordIndexMap.get(word) == null) {
 					wordIndexMap.put(word, wordIndex++);
+					this.dicSize = wordIndex;
 				}
 				vector.add(wordIndexMap.get(word));
 			}
