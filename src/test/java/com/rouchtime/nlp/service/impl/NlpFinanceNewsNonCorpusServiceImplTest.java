@@ -1,20 +1,14 @@
 package com.rouchtime.nlp.service.impl;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-import com.alibaba.fastjson.JSONObject;
 import com.rouchtime.nlp.corpus.FinanceNewsOrNonCorpus;
 import com.rouchtime.nlp.dao.NlpFinanceNewsNonRawMapper;
 import com.rouchtime.nlp.model.NlpFinanceNewsNonRaw;
@@ -23,15 +17,18 @@ import utils.Contants;
 
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
 public class NlpFinanceNewsNonCorpusServiceImplTest extends AbstractJUnit4SpringContextTests {
-	
 	@Autowired
-	@Qualifier("nlpFinanceNewsNonRawMapper")
 	NlpFinanceNewsNonRawMapper nlpFinanceNewsNonRawMapper;
 
+	@Autowired
+	@Qualifier("financeNewsOrNonCorpus")
+	FinanceNewsOrNonCorpus financeNewsOrNonCorpus;
 	@Test
 	public void testNlpFinanceNewsNonCorpusService() throws IOException {
-		FinanceNewsOrNonCorpus c = new FinanceNewsOrNonCorpus();
-		c.rawFromFileid("a");
+//		NlpFinanceNewsNonRaw nlpCorpus = new NlpFinanceNewsNonRaw();
+//		nlpCorpus.setContent("abc");
+		System.out.println(financeNewsOrNonCorpus.rawFromTitle("a"));
+//		nlpFinanceNewsNonRawMapper.insert(nlpCorpus);
 //		NlpFinanceNewsNonRaw nlpCorpus = nlpFinanceNewsNonRawMapper.selectByPrimaryKey(753l);
 //		System.out.println(nlpCorpus.getContent());
 //		List<String> linesTotal = FileUtils.readLines(new File("D:\\corpus\\corpus\\new_fe_corpus_url.json"), "utf-8");

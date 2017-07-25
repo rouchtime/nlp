@@ -15,6 +15,7 @@
 		<context:exclude-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
+	
 	<!-- 引入配置文件 -->
 	<bean id="propertyConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -50,13 +51,13 @@
 	</bean>
 
 
-<!-- 	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer"> -->
-<!-- 		<property name="basePackage" value="com.isea533.mybatis.mapper" /> -->
-<!-- 		<property name="properties"> -->
-<!-- 			<value> -->
-<!-- 				mappers=tk.mybatis.mapper.common.Mapper -->
-<!-- 			</value> -->
-<!-- 		</property> -->
-<!-- 	</bean> -->
+	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.rouchtime.nlp.dao" />
+		<property name="properties">
+			<value>
+				mappers=tk.mybatis.mapper.common.Mapper
+			</value>
+		</property>
+	</bean>
 
 </beans>  

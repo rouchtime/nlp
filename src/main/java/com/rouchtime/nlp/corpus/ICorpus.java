@@ -8,14 +8,14 @@ public interface ICorpus {
 	 * 获得所有标题
 	 * @return
 	 */
-	public List<String> fileids();
+	public List<String> titles();
 	
 	/**
 	 * 根据标签返回标题
 	 * @param label
 	 * @return
 	 */
-	public List<String> fileidsFromLabel(String label);
+	public List<String> titlesFromLabel(String label);
 	
 	/**
 	 * 获得所有标签
@@ -25,10 +25,10 @@ public interface ICorpus {
 	
 	/**
 	 * 根据标题返回标签
-	 * @param fileid
+	 * @param Title
 	 * @return
 	 */
-	public String labelFromFileids(String fileid);
+	public String labelFromTitles(String title);
 	
 	/**
 	 * 获得所有原始文章
@@ -38,10 +38,10 @@ public interface ICorpus {
 	
 	/**
 	 * 根据标题获得文章
-	 * @param fileids
+	 * @param Titles
 	 * @return
 	 */
-	public String rawFromFileid(String fileids);
+	public String rawFromTitle(String titles);
 	
 	/**
 	 * 根据标签获得文章
@@ -58,10 +58,10 @@ public interface ICorpus {
 	
 	/**
 	 * 根据标题获得分词
-	 * @param fileid
+	 * @param Title
 	 * @return
 	 */
-	public List<String> wordsFromFileid(String fileid);
+	public List<String> wordsFromTitle(String title);
 	
 	/**
 	 * 根据标签获得分词集
@@ -78,15 +78,15 @@ public interface ICorpus {
 	
 	/**
 	 * 根据标题获得句子
-	 * @param fileid
+	 * @param Title
 	 * @return
 	 */
-	public List<String> sentsFromFileid(String fileid);
+	public List<String> sentsFromTitle(String title);
 	
 	/**
 	 * 根据标签获得句子
-	 * @param fileid
+	 * @param Title
 	 * @return
 	 */
-	public List<String> sentsFromLabel(String fileid);
+	public List<String> sentsFromLabel(String label);
 }

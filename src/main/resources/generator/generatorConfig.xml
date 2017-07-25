@@ -3,34 +3,54 @@
         PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
         "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
 <generatorConfiguration>
-	<classPathEntry
-		location="E:\repository\mysql\mysql-connector-java\5.1.30\mysql-connector-java-5.1.30.jar" />
-	<context id="Mysql" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+	<!-- <classPathEntry -->
+	<!-- location="E:\repository\mysql\mysql-connector-java\5.1.30\mysql-connector-java-5.1.30.jar" 
+		/> -->
+	<context id="Mysql" targetRuntime="MyBatis3Simple"
+		defaultModelType="flat">
+
+		<plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+			<property name="mappers" value="tk.mybatis.mapper.common.Mapper" />
+			<!-- caseSensitive默认false，当数据库表名区分大小写时，可以将该属性设置为true -->
+			<property name="caseSensitive" value="true" />
+		</plugin>
 
 		<jdbcConnection connectionURL="jdbc:mysql://localhost:3306/nlp"
 			driverClass="com.mysql.jdbc.Driver" password="gong1989" userId="rouchtime" />
-			
+
 		<!-- 生成实体类 -->
-		<javaModelGenerator targetPackage="com.rouchtime.nlp.model"
-			targetProject="nlp">
-			<property name="enableSubPackages" value="true" />
-			<property name="trimStrings" value="true" />
-		</javaModelGenerator>
-	
+		<!-- <javaModelGenerator targetPackage="com.rouchtime.nlp.model" -->
+		<!-- targetProject="nlp"> -->
+		<!-- <property name="enableSubPackages" value="true" /> -->
+		<!-- <property name="trimStrings" value="true" /> -->
+		<!-- </javaModelGenerator> -->
+
 		<!-- 生成Mapper接口对应的XML文件 -->
-		<sqlMapGenerator targetPackage="mapper" targetProject="nlp">
-			<property name="enableSubPackages" value="true" />
-		</sqlMapGenerator>
+		<!-- <sqlMapGenerator targetPackage="mapper" targetProject="nlp"> -->
+		<!-- <property name="enableSubPackages" value="true" /> -->
+		<!-- </sqlMapGenerator> -->
 
-		
-		<javaClientGenerator targetPackage="com.rouchtime.nlp.dao"
-			targetProject="nlp" type="XMLMAPPER">
-			<property name="enableSubPackages" value="true" />
-		</javaClientGenerator>
 
-		<table tableName="nlp_finance_news_non_raw" enableCountByExample="false"
-			enableDeleteByExample="false" enableSelectByExample="false"
-			enableUpdateByExample="false" selectByExampleQueryId="false">
+		<!-- <javaClientGenerator targetPackage="com.rouchtime.nlp.dao" -->
+		<!-- targetProject="nlp" type="XMLMAPPER"> -->
+		<!-- <property name="enableSubPackages" value="true" /> -->
+		<!-- </javaClientGenerator> -->
+		<javaModelGenerator targetPackage="${targetModelPackage}"
+			targetProject="${targetJavaProject}" />
+
+		<sqlMapGenerator targetPackage="${targetXMLPackage}"
+			targetProject="${targetResourcesProject}" />
+
+		<javaClientGenerator targetPackage="${targetMapperPackage}"
+			targetProject="${targetJavaProject}" type="XMLMAPPER" />
+		<table tableName="%">
+			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
+
+		<!-- <table tableName="nlp_finance_news_non_raw" -->
+		<!-- enableCountByExample="false" enableDeleteByExample="false" -->
+		<!-- enableSelectByExample="false" enableUpdateByExample="false" -->
+		<!-- selectByExampleQueryId="false"> -->
+		<!-- </table> -->
 	</context>
 </generatorConfiguration>

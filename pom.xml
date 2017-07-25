@@ -11,13 +11,23 @@
 	<url>http://maven.apache.org</url>
 
 	<properties>
-		<!-- spring版本号 -->
-		<spring.version>4.0.2.RELEASE</spring.version>
+		<!-- MyBatis Generator -->
+		<!-- Java接口和实体类 -->
+		<targetJavaProject>${basedir}/src/main/java</targetJavaProject>
+		<targetMapperPackage>com.rouchtime.nlp.dao</targetMapperPackage>
+		<targetModelPackage>com.rouchtime.nlp.model</targetModelPackage>
+		<!-- XML生成路径 -->
+		<targetResourcesProject>${basedir}/src/main/resources</targetResourcesProject>
+		<targetXMLPackage>mapper</targetXMLPackage>
 		<!-- mybatis版本号 -->
-		<mybatis.version>3.2.6</mybatis.version>
+		<mybatis.version>3.2.8</mybatis.version>
 		<mysql.connector.version>5.1.30</mysql.connector.version>
 		<!-- <tk.mybatis.mapper.version>3.4.2</tk.mybatis.mapper.version> -->
-		<tk.mybatis.mapper.version>2.3.4</tk.mybatis.mapper.version>
+		<tk.mybatis.mapper.version>3.4.2</tk.mybatis.mapper.version>
+
+
+
+		<spring.version>4.0.2.RELEASE</spring.version>
 		<!-- log4j日志文件管理包版本 -->
 		<slf4j.version>1.7.7</slf4j.version>
 		<log4j.version>1.2.17</log4j.version>
@@ -214,21 +224,21 @@
 		</dependency>
 
 		<!-- 通用mapper -->
+		<dependency>
+			<groupId>tk.mybatis</groupId>
+			<artifactId>mapper</artifactId>
+			<version>${tk.mybatis.mapper.version}</version>
+		</dependency>
 		<!-- <dependency> -->
-		<!-- <groupId>tk.mybatis</groupId> -->
+		<!-- <groupId>com.github.abel533</groupId> -->
 		<!-- <artifactId>mapper</artifactId> -->
 		<!-- <version>${tk.mybatis.mapper.version}</version> -->
 		<!-- </dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.github.abel533</groupId> -->
-<!-- 			<artifactId>mapper</artifactId> -->
-<!-- 			<version>${tk.mybatis.mapper.version}</version> -->
-<!-- 		</dependency> -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>javax.persistence</groupId> -->
-<!-- 			<artifactId>persistence-api</artifactId> -->
-<!-- 			<version>1.0</version> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+		</dependency>
 		<!-- JSTL标签类 -->
 		<dependency>
 			<groupId>jstl</groupId>
@@ -274,28 +284,28 @@
 	<build>
 		<plugins>
 			<!-- mybatis的自动生成器 -->
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.mybatis.generator</groupId> -->
-<!-- 				<artifactId>mybatis-generator-maven-plugin</artifactId> -->
-<!-- 				<version>1.3.2</version> -->
-<!-- 				<configuration> -->
-<!-- 					<configurationFile>${basedir}/src/main/resources/generator/generatorConfig.xml</configurationFile> -->
-<!-- 					<overwrite>true</overwrite> -->
-<!-- 					<verbose>true</verbose> -->
-<!-- 				</configuration> -->
-<!-- 				<dependencies> -->
-<!-- 					<dependency> -->
-<!-- 						<groupId>mysql</groupId> -->
-<!-- 						<artifactId>mysql-connector-java</artifactId> -->
-<!-- 						<version>${mysql.connector.version}</version> -->
-<!-- 					</dependency> -->
-<!-- 					<dependency> -->
-<!-- 						<groupId>tk.mybatis</groupId> -->
-<!-- 						<artifactId>mapper</artifactId> -->
-<!-- 						<version>${tk.mybatis.mapper.version}</version> -->
-<!-- 					</dependency> -->
-<!-- 				</dependencies> -->
-<!-- 			</plugin> -->
+			<plugin>
+				<groupId>org.mybatis.generator</groupId>
+				<artifactId>mybatis-generator-maven-plugin</artifactId>
+				<version>1.3.2</version>
+				<configuration>
+					<configurationFile>${basedir}/src/main/resources/generator/generatorConfig.xml</configurationFile>
+					<overwrite>true</overwrite>
+					<verbose>true</verbose>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>mysql</groupId>
+						<artifactId>mysql-connector-java</artifactId>
+						<version>${mysql.connector.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>tk.mybatis</groupId>
+						<artifactId>mapper</artifactId>
+						<version>${tk.mybatis.mapper.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
