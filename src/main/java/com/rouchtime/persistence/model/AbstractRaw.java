@@ -1,9 +1,11 @@
-package com.rouchtime.nlp.model;
+package com.rouchtime.persistence.model;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 
-@Table(name = "nlp_finance_news_non_raw")
-public class NlpFinanceNewsNonRaw {
+public class AbstractRaw {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

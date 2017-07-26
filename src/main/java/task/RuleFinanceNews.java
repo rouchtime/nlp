@@ -1,14 +1,14 @@
 package task;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import com.rouchtime.util.RegexUtils;
+
 import corpus.NonLabelRawCorpus;
-import utils.RegexUtils;
 
 public class RuleFinanceNews {
 	public static void main(String[] args) throws Exception {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.rouchtime.nlp.dao.NlpFinanceNewsNonRawMapper" >
-  <resultMap id="BaseResultMap" type="com.rouchtime.nlp.model.NlpFinanceNewsNonRaw" >
+<mapper namespace="com.rouchtime.persistence.dao.NlpFinanceNewsNonRawMapper" >
+  <resultMap id="BaseResultMap" type="com.rouchtime.persistence.model.NlpFinanceNewsNonRaw" >
     <!--
       WARNING - @mbg.generated
     -->

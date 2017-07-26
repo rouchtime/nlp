@@ -1,4 +1,4 @@
-package utils;
+package com.rouchtime.util;
 
 public class Contants {
 	public final static String TAB = "\t";

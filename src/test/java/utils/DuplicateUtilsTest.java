@@ -8,10 +8,12 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.rouchtime.nlp.common.News;
+import com.rouchtime.nlp.common.Result;
+import com.rouchtime.util.DuplicateUtils;
+
 import corpus.DuplicateCorpus;
 import junit.framework.TestCase;
-import pojo.News;
-import pojo.Result;
 import tokenizer.AnsjTokenizerFactory;
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;

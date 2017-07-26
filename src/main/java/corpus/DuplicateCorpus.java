@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -16,8 +14,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
+import com.rouchtime.nlp.common.News;
 
-import duplicate.pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
 public class DuplicateCorpus extends BaseCorpus {

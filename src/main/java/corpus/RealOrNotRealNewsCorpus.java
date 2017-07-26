@@ -19,8 +19,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.alibaba.fastjson.JSONObject;
+import com.rouchtime.nlp.common.News;
 
-import duplicate.pojo.News;
 import tokenizer.HanLPTokenizerFactory;
 
 public final class RealOrNotRealNewsCorpus extends BaseCorpus {

@@ -10,27 +10,20 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 import com.rouchtime.nlp.corpus.FinanceNewsOrNonCorpus;
-import com.rouchtime.nlp.dao.NlpFinanceNewsNonRawMapper;
-import com.rouchtime.nlp.model.NlpFinanceNewsNonRaw;
+import com.rouchtime.persistence.dao.NlpFinanceNewsNonRawMapper;
+import com.rouchtime.util.Contants;
 
-import utils.Contants;
+import tokenizer.HanLPTokenizerFactory;
+import tokenizer.StopWordTokenierFactory;
 
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
 public class NlpFinanceNewsNonCorpusServiceImplTest extends AbstractJUnit4SpringContextTests {
-	@Autowired
-	NlpFinanceNewsNonRawMapper nlpFinanceNewsNonRawMapper;
 
 	@Autowired
 	@Qualifier("financeNewsOrNonCorpus")
 	FinanceNewsOrNonCorpus financeNewsOrNonCorpus;
 	@Test
 	public void testNlpFinanceNewsNonCorpusService() throws IOException {
-//		NlpFinanceNewsNonRaw nlpCorpus = new NlpFinanceNewsNonRaw();
-//		nlpCorpus.setContent("abc");
-		System.out.println(financeNewsOrNonCorpus.rawFromTitle("a"));
-//		nlpFinanceNewsNonRawMapper.insert(nlpCorpus);
-//		NlpFinanceNewsNonRaw nlpCorpus = nlpFinanceNewsNonRawMapper.selectByPrimaryKey(753l);
-//		System.out.println(nlpCorpus.getContent());
 //		List<String> linesTotal = FileUtils.readLines(new File("D:\\corpus\\corpus\\new_fe_corpus_url.json"), "utf-8");
 //		for (String line : linesTotal) {
 //			JSONObject json = JSONObject.parseObject(line);

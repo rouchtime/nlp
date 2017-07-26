@@ -1,21 +1,15 @@
 package task;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-
 import com.aliasi.classify.ConfusionMatrix;
+import com.rouchtime.nlp.common.News;
+import com.rouchtime.util.RegexUtils;
 
 import corpus.FeNews2ClassCorpus;
-import duplicate.pojo.News;
 import tokenizer.FudanNLPTokenzierFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
-import utils.RegexUtils;
 
 public class FeorNonFeTestTask {
 	public static void main(String[] args) throws Exception {

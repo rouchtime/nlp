@@ -1,8 +1,6 @@
-package duplicate.minhash;
+package com.rouchtime.nlp.common;
 
 import java.util.Set;
-
-import duplicate.pojo.News;
 
 public class NewsSig extends News{
 	private int[] hash;

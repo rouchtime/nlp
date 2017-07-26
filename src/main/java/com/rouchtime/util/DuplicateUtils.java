@@ -1,4 +1,4 @@
-package utils;
+package com.rouchtime.util;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,12 +16,11 @@ import java.util.TreeSet;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.Pair;
-
-import duplicate.minhash.LSHMinHash;
-import duplicate.minhash.MinHash;
-import duplicate.minhash.NewsSig;
-import pojo.News;
-import pojo.Result;
+import com.rouchtime.nlp.common.News;
+import com.rouchtime.nlp.common.NewsSig;
+import com.rouchtime.nlp.common.Result;
+import com.rouchtime.nlp.duplicate.minhash.LSHMinHash;
+import com.rouchtime.nlp.duplicate.minhash.MinHash;
 
 public class DuplicateUtils {
 	private Map<String, Integer> wordIndexMap;
