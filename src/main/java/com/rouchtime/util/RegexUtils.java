@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,7 +35,7 @@ public class RegexUtils {
 		dateFormat.add("yyyy.MM.dd");
 		dateFormat.add("MM.dd");
 		try {
-			duplicateRegex = IOUtils.readLines(RegexUtils.class.getResourceAsStream("/duplicate_regex.txt"), "utf-8");
+			duplicateRegex = IOUtils.readLines(RegexUtils.class.getResourceAsStream("/nlpdic/duplicate_regex.txt"), "utf-8");
 		} catch (IOException e) {
 			duplicateRegex = new ArrayList<String>();
 			e.printStackTrace();

@@ -24,7 +24,6 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 	private static final long serialVersionUID = -1312129063609071054L;
 
 	private final Set<String> mStopSet;
-
 	public StopWordTokenierFactory(TokenizerFactory factory, Set<String> stopSet) {
 		super(factory);
 		mStopSet = new HashSet<String>(stopSet);

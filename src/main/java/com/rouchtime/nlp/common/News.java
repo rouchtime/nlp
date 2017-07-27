@@ -1,6 +1,19 @@
 package com.rouchtime.nlp.common;
 
-public class News {
+import java.io.Serializable;
+
+public class News implements Serializable{
+	public News() {
+		super();
+	}
+	public News(String id, String title, String article, String url) {
+		super();
+		this.id = id;
+		this.title = title;
+		this.article = article;
+		this.url = url;
+	}
+	private static final long serialVersionUID = -5448373695477479745L;
 	private String id; 
 	private String title;
 	private String article;
