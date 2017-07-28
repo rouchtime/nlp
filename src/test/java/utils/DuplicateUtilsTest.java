@@ -110,4 +110,8 @@ public class DuplicateUtilsTest extends TestCase {
 		}
 
 	}
+	
+	public void testOriginDupContrust() {
+		
+	}
 }

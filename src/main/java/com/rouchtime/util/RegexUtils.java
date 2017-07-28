@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -210,7 +211,6 @@ public class RegexUtils {
 	}
 
 	public static String convertURLToNewsKey(String url) {
-		SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
 		String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
 		if (s_time.length() == Contants.NEWS_URL_LENGTH) {
 			return s_time;
@@ -218,6 +218,19 @@ public class RegexUtils {
 		if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
 			s_time = s_time.substring(0, s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
 			return s_time;
+		}
+		return null;
+	}
+	
+	public static Date convertURLToDateTime(String url) throws ParseException {
+		SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
+		String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
+		if (s_time.length() == Contants.NEWS_URL_LENGTH) {
+			return sdf.parse(s_time);
+		}
+		if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
+			s_time = s_time.substring(0, s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
+			return sdf.parse(s_time);
 		}
 		return null;
 	}

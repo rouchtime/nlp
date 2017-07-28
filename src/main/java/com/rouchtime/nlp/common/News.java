@@ -3,6 +3,10 @@ package com.rouchtime.nlp.common;
 import java.io.Serializable;
 
 public class News implements Serializable{
+	@Override
+	public String toString() {
+		return "News [id=" + id + ", title=" + title + ", article=" + article + ", url=" + url + "]";
+	}
 	public News() {
 		super();
 	}

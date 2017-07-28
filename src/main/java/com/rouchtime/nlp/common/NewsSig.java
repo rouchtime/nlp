@@ -1,5 +1,6 @@
 package com.rouchtime.nlp.common;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public class NewsSig extends News {
@@ -12,12 +13,31 @@ public class NewsSig extends News {
 		super();
 	}
 
-	public NewsSig(int[] hash, Set<Integer> vector, News news) {
-		super(news.getId(), news.getTitle(), news.getArticle(), news.getUrl());
+	@Override
+	public String toString() {
+		return "NewsSig [hash=" + Arrays.toString(hash) + ", vector=" + vector + ", toString()=" + super.toString()
+				+ "]";
+	}
+
+	private int[] hash;
+	private Set<Integer> vector;
+	
+	public int[] getHash() {
+		return hash;
+	}
+
+	public Set<Integer> getVector() {
+		return vector;
+	}
+
+	public void setHash(int[] hash) {
 		this.hash = hash;
+	}
+
+	public void setVector(Set<Integer> vector) {
 		this.vector = vector;
 	}
-	
+
 	public static class NewsSigBuilder implements Builder<NewsSig>
     {
         // 必须参数
@@ -29,71 +49,64 @@ public class NewsSig extends News {
         private String article;
         private String title;
         private String url;
+        private News news;
 
-        // 必须参数必须通过通过构造参数传递
-        public Builder(int[] hash, Set<Integer> vector)
+        public NewsSigBuilder(int[] hash, Set<Integer> vector)
         {
             this.hash = hash;
             this.vector = vector;
         }
 
-        // 构建calories,返回本身，以便可以把调用连接起来
-        public Builder calories(String id)
+        public NewsSigBuilder news(News news) {
+            this.news = news;
+            return this;
+        }
+        
+        public NewsSigBuilder id(String id)
         {
-            this.id = calories;
+            this.id = id;
             return this;
         }
 
-        // 构建sodium
-        public Builder sodium(String article)
+        public NewsSigBuilder article(String article)
         {
-            this.article = sodium;
+            this.article = article;
             return this;
         }
 
-        // 构建fat
-        public Builder fat(String title)
+        public NewsSigBuilder title(String title)
         {
-            this.title = fat;
+            this.title = title;
             return this;
         }
 
-        // 构建carbohydrate
-        public Builder carbohydrate(String url)
+        public NewsSigBuilder url(String url)
         {
-            this.carbohydrate = carbohydrate;
+            this.url = url;
             return this;
-        }
-
-        //build,返回NutritionFact3
-        public NutritionFact3 build()
-        {
-            return new NutritionFact3(this);
         }
 
 		@Override
 		public NewsSig builder() {
-			return null;
+			return new NewsSig(this);
 		}
     }
 	
-	
-	private int[] hash;
-	private Set<Integer> vector;
-
-	public Set<Integer> getVector() {
-		return vector;
-	}
-
-	public void setVector(Set<Integer> vector) {
-		this.vector = vector;
-	}
-
-	public int[] getHash() {
-		return hash;
-	}
-
-	public void setHash(int[] hash) {
-		this.hash = hash;
-	}
+    private NewsSig(NewsSigBuilder builder)
+    {
+    	hash = builder.hash;
+    	vector = builder.vector;
+    	if(builder.article!=null) {
+    		super.setArticle(builder.article);
+    	}
+    	if(builder.title!=null) {
+    		super.setArticle(builder.title);
+    	}
+    	if(builder.url!=null) {
+    		super.setArticle(builder.url);
+    	}
+    	if(builder.id!=null) {
+    		super.setArticle(builder.id);
+    	}
+    }
 }

@@ -2,7 +2,10 @@ package task;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +13,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.aliasi.classify.TradNaiveBayesClassifier;
 import com.alibaba.fastjson.JSONObject;
+import com.rouchtime.nlp.common.NewsSig;
 import com.rouchtime.util.RegexUtils;
 
 public class OperateRawNews {
@@ -67,8 +71,18 @@ public class OperateRawNews {
 		}
 	}
 	
+	public static boolean check() {
+		System.out.println("aaaaaa");
+		return false;
+	}
 	public static void main(String[] args) throws IOException {
 //		readTotalText();
-		System.out.println("　　".matches("\\s+"));
+//		System.out.println("　　".matches("\\s+"));
+//		TreeMap<String, Integer> bOWMap = new TreeMap<String,Integer>();
+//		System.out.println(bOWMap.put("1", 1));
+//		boolean flag = false;
+//		if(flag || check()) {
+//			System.out.println("bbbb");
+//		}
 	}
 }

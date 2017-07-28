@@ -1,13 +1,9 @@
 package com.rouchtime.util;
-
-import java.io.BufferedReader;
-import java.io.Externalizable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
@@ -17,69 +13,146 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.ExceptionUtils;
-
-import com.aliasi.classify.TradNaiveBayesClassifier;
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.aliasi.util.AbstractExternalizable;
+import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.Pair;
-import com.alibaba.fastjson.JSONObject;
 import com.rouchtime.nlp.common.News;
 import com.rouchtime.nlp.common.NewsSig;
 import com.rouchtime.nlp.common.Result;
 import com.rouchtime.nlp.duplicate.minhash.LSHMinHash;
 import com.rouchtime.nlp.duplicate.minhash.MinHash;
 
-import tokenizer.HanLPTokenizerFactory;
-import tokenizer.StopWordTokenierFactory;
-
-public class DuplicateUtils implements Externalizable {
+/**
+ * 去重工具
+ * 
+ * @author 龚帅宾
+ *
+ */
+public class DuplicateUtils {
 	private static Logger logger = Logger.getLogger(DuplicateUtils.class);
-	private Map<String, Integer> wordIndexMap;
+	private ObjectToCounterMap<String> wordIndexMap;
 	private LSHMinHash lshMinHash; /* lsh最小hash */
 	private TreeMap<String, NewsSig> bOWMap;
 	private TokenizerFactory factory;
-	private Integer dicSize;/* 字典词数 */
 	private int maxQueueSize; /* bOWSet的队列最大数 */
 	private static final int STAGES = 10;
 	private static final int BUCKETS = 10000;
 	private static final double THRESHOLD = 0.5;
 
 	/**
-	 * 初始化
+	 * 初始化构造器,为了维护之前的短文去重而保留，已开发新的可选择长短文本的构造器
+	 * {@link #DuplicateUtils(List,TokenizerFactory,Integer,boolean)}
+	 * <p>
+	 * 它通过已给定的新闻列表 <code>dupNewsList</code>来进行初始化，
+	 * 该初始化会将<code>dupNewsList</code>的每一个文本通过最小hash计算后，得到hash向量，并将该向量
+	 * 放入一个队列中，去重时会一直维护这个队列；此构造器默认构造短文本的去重， 在去重短文本时不会讲文章的具体内容加载到队列中。
+	 * </p>
 	 * 
 	 * @param dupNewsList
-	 *            初始化时放入的去重集合,输入id，和内容
+	 *            新闻列表
 	 * @param factory
 	 *            分词工厂
+	 * @param maxQueueSize
+	 *            队列最大维护数量
 	 */
 	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, int maxQueueSize) {
 		this.maxQueueSize = maxQueueSize;
 		this.factory = factory;
-		wordIndexMap = new HashMap<String, Integer>();
+		wordIndexMap = new ObjectToCounterMap<String>();
 		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
 		try {
 			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
-			initWordIndexAndHashes(dupNewsList);
+			initWordIndexAndHashes(dupNewsList, false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public DuplicateUtils(String modelPath, TokenizerFactory factory, int maxQueueSize) {
+	/**
+	 * <p>
+	 * 它通过已给定的新闻列表 <code>dupNewsList</code>来进行初始化，
+	 * 该初始化会将<code>dupNewsList</code>的每一个文本通过最小hash计算后，得到hash向量，并将该向量
+	 * 放入一个队列中，去重时会一直维护这个队列；
+	 * </p>
+	 * <p>
+	 * <code>isLargeFlag</code>标识位来区分长短文本，长文本位true，短文本为false；
+	 * 当选择长文本去重时，为了减少队列空间，不会将长文本的原始内容保存，只保存文章的id和url；短文本都保存
+	 * </p>
+	 * 
+	 * @param dupNewsList
+	 * @param factory
+	 * @param maxQueueSize
+	 * @param isLargeFlag
+	 */
+	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, Integer maxQueueSize, boolean isLargeFlag) {
+		this.maxQueueSize = maxQueueSize;
+		this.factory = factory;
+		wordIndexMap = new ObjectToCounterMap<String>();
+		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
+		try {
+			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+			initWordIndexAndHashes(dupNewsList, isLargeFlag);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
+	/**
+	 * 此构造器为冷启动构造器，不会加载任何历史文章列表；
+	 * 文本去重，当第一篇文章来查重时，会构建队列，直到队列满足<code>maxQueueSize</code> 的最大数量后，
+	 * 会将最旧新闻的pop出去，push进当前新闻。
+	 * <p>
+	 * <code>isLargeFlag</code>标识位来区分长短文本，长文本位true，短文本为false；
+	 * 当选择长文本去重时，为了减少队列空间，不会将长文本的原始内容保存，只保存文章的id和url；短文本都保存
+	 * </p>
+	 * 
+	 * @param factory
+	 *            分词工厂
+	 * @param maxQueueSize
+	 *            队列最大维护数量
+	 * @param isLargeFlag
+	 *            长短文本标志位
+	 */
+	public DuplicateUtils(TokenizerFactory factory, int maxQueueSize, boolean isLargeFlag) {
+		this.maxQueueSize = maxQueueSize;
+		this.factory = factory;
+		wordIndexMap = new ObjectToCounterMap<String>();
+		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
+		lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+	}
+
+	/**
+	 * 此构造器通过<code>modelPath</code>路径读入模型文件存放位置，通过已存模型来加载队列，速度更快一些。
+	 * 
+	 * @param modelPath
+	 *            模型路径
+	 * @param factory
+	 *            分词工厂
+	 * @param maxQueueSize
+	 *            队列最大维护数量
+	 */
+	public DuplicateUtils(String modelPath, TokenizerFactory factory, int maxQueueSize) {
+		FileInputStream fin;
+		try {
+			fin = new FileInputStream(new File(modelPath));
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			readExternal(ois);
+		} catch (FileNotFoundException e) {
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (IOException e) {
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		}
+		this.factory = factory;
 	}
 
 	/**
@@ -91,23 +164,11 @@ public class DuplicateUtils implements Externalizable {
 	 * @throws IOException
 	 */
 	public List<Result> duplicateShort(News news, double sim) throws IOException {
-		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news);
-		List<Result> resultList = new ArrayList<Result>();
-		for (NewsSig ns : pair.b()) {
-			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
-			if (jaccardSim >= sim) {
-				if (!RegexUtils.judgeFormat(pair.a().getArticle(), ns.getArticle())) {
-					News dupNews = new News();
-					dupNews.setUrl(ns.getUrl());
-					dupNews.setId(ns.getId());
-					Result result = new Result();
-
-					result.setNews(dupNews);
-					result.setSimilariy(jaccardSim);
-					resultList.add(result);
-				}
-			}
+		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news, false);
+		if (null == pair) {
+			return null;
 		}
+		List<Result> resultList = findDuplicateFromCandidate(pair, sim, false);
 		return resultList;
 	}
 
@@ -117,65 +178,13 @@ public class DuplicateUtils implements Externalizable {
 	 * @param news
 	 * @param sim
 	 * @return
-	 * @throws IOException
 	 */
-	public List<Result> duplicateLong(News news, double sim) throws IOException {
-		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news);
-		List<Result> resultList = new ArrayList<Result>();
-		for (NewsSig ns : pair.b()) {
-			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
-			if (jaccardSim >= sim) {
-				News dupNews = new News();
-				dupNews.setUrl(ns.getUrl());
-				dupNews.setId(ns.getId());
-				Result result = new Result();
-
-				result.setNews(dupNews);
-				result.setSimilariy(jaccardSim);
-				resultList.add(result);
-			}
-		}
-		return resultList;
-	}
-
-	/**
-	 * 根据模型来去重
-	 * 
-	 * @param path
-	 *            模型存放地址
-	 * @return
-	 */
-	public List<Result> duplicateLong(String path, News news, double sim) {
-		FileInputStream fin;
-		try {
-			fin = new FileInputStream(new File(path));
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			readExternal(ois);
-		} catch (FileNotFoundException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
-			return null;
-		} catch (IOException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
-			return null;
-		} catch (ClassNotFoundException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
-			return null;
-		}
+	public List<Result> duplicateLong(News news, double sim) {
 		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news, true);
-		List<Result> resultList = new ArrayList<Result>();
-		for (NewsSig ns : pair.b()) {
-			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
-			if (jaccardSim >= sim) {
-				News dupNews = new News();
-				dupNews.setUrl(ns.getUrl());
-				dupNews.setId(ns.getId());
-				Result result = new Result();
-
-				result.setNews(dupNews);
-				result.setSimilariy(jaccardSim);
-				resultList.add(result);
-			}
+		if (null == pair) {
+			return null;
 		}
+		List<Result> resultList = findDuplicateFromCandidate(pair, sim, true);
 		return resultList;
 
 	}
@@ -187,7 +196,7 @@ public class DuplicateUtils implements Externalizable {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean removeFromQueue(String url) throws Exception {
+	public synchronized boolean removeFromQueue(String url) throws Exception {
 		if (null == url) {
 			throw new Exception("News's url is NULL!");
 		}
@@ -204,245 +213,61 @@ public class DuplicateUtils implements Externalizable {
 		return false;
 	}
 
-	private static File file;
-
-	@SuppressWarnings({ "unchecked", "resource" })
-	public static void readModel(TokenizerFactory factory, File file) throws IOException, ClassNotFoundException {
-		Long readModelStart = System.currentTimeMillis();
-		FileInputStream fin = new FileInputStream(
-				new File("C:\\Users\\Admin\\AppData\\Local\\Temp\\lshModel5445222580386401134.ser"));
-		ObjectInputStream ois = new ObjectInputStream(fin);
-		LSHMinHash saved_lsh = (LSHMinHash) ois.readObject();
-		List<NewsSig> listNewsSig = (ArrayList<NewsSig>) ois.readObject();
-		Map<String, Integer> wordDicIndex = (HashMap<String, Integer>) ois.readObject();
-		Long endModel = System.currentTimeMillis();
-		System.out.println("Read Model:" + (endModel - readModelStart));
-
-		/***********************************************************************/
-		int wordIndex = wordDicIndex.keySet().size();
-		int dupCount = 1;
-
-		BufferedReader reader = new BufferedReader(
-				(new InputStreamReader(new FileInputStream(file), Charsets.toCharset("utf-8"))));
-		String line = reader.readLine();
-		int totalIndex = 1;
-		while (line != null) {
-			if (totalIndex % 1000 == 0) {
-				System.out.println(totalIndex);
-			}
-			if (totalIndex > 80000) {
-				break;
-			}
-			JSONObject jsonObject = JSONObject.parseObject(line);
-			String content = jsonObject.getString("content");
-			String newsKey = jsonObject.getString("newsKey");
-			String url = jsonObject.getString("url");
-			String title = jsonObject.getString("title");
-			if (content.matches("\\s+") || newsKey.equals("")) {
-				line = reader.readLine();
-				continue;
-			}
-			// Long dupStartTime = System.currentTimeMillis();
-			Set<Integer> vector = new TreeSet<Integer>();
-			for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
-				String word = token.split("/")[0];
-				if (null == wordDicIndex.get(word)) {
-					wordDicIndex.put(word, wordIndex);
-					vector.add(wordIndex);
-					wordIndex++;
-				}
-				vector.add(wordDicIndex.get(word));
-			}
-			int[] checkHash = saved_lsh.hash(vector);
-			List<NewsSig> candidate = new ArrayList<NewsSig>();
-			for (NewsSig ns : listNewsSig) {
-				if (ns.getId().equals(newsKey)) {
-					continue;
-				}
-				int[] hash1 = ns.getHash();
-				for (int stage = 0; stage < STAGES; stage++) {
-					if (hash1[stage] == checkHash[stage]) {
-						candidate.add(ns);
-						break;
-					}
-				}
-			}
-
-			List<JSONObject> jsonList = new ArrayList<JSONObject>();
-			for (NewsSig candidateNews : candidate) {
-				double jaccardSim = MinHash.jaccardIndex(vector, candidateNews.getVector());
-				if (jaccardSim >= 0.7 && jaccardSim <= 0.8) {
-					JSONObject printJsonObject = new JSONObject();
-					printJsonObject.put("url", candidateNews.getUrl());
-					printJsonObject.put("sim", jaccardSim);
-					printJsonObject.put("title", candidateNews.getTitle());
-					jsonList.add(printJsonObject);
-				}
-			}
-			totalIndex++;
-			// Long dupEndTime = System.currentTimeMillis();
-			// System.out.println("DupTime:"+(dupEndTime-dupStartTime));
-			if (jsonList.size() < 1) {
-				line = reader.readLine();
-				continue;
-			} else {
-				FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result87"),
-						dupCount + ":\t\t" + title + "\t\t" + url + "\n", "utf-8", true);
-				for (JSONObject j : jsonList) {
-					FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result87"), j.toJSONString() + "\n",
-							"utf-8", true);
-				}
-
-			}
-			// Long endStart = System.currentTimeMillis();
-			// System.out.println("Duplicate Time:"+ (endStart- duStart));
-			FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result87"),
-					"===========================================\n", "utf-8", true);
-			dupCount++;
-			line = reader.readLine();
+	/**
+	 * 根据指定路径，生成模型
+	 * @param path
+	 * @return
+	 */
+	public String writeModel(String path) {
+		SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
+		if (!path.endsWith("/"))
+			path += "/LSHModel_";
+		else 
+			path += "LSHModel_";
+		String modelPath = path + sdf.format(new Date()) + ".model";
+		FileOutputStream fout;
+		try {
+			fout = new FileOutputStream(new File(modelPath));
+			ObjectOutputStream oos = new ObjectOutputStream(fout);
+			writeExternal(oos);
+			return modelPath;
+		} catch (FileNotFoundException e) {
+			logger.error(ExceptionUtils.getThrowables(e));
+			return null;
+		} catch (IOException e) {
+			logger.error(ExceptionUtils.getThrowables(e));
+			return null;
 		}
-		// for (NewsSig newsSig : listNewsSig) {
-		// Long duStart = System.currentTimeMillis();
-		// Set<Integer> vector = new TreeSet<Integer>();
-		// for (String token : factory.tokenizer(newsSig.getArticle().toCharArray(), 0,
-		// content.length())) {
-		// String word = token.split("/")[0];
-		// if (null == wordDicIndex.get(word)) {
-		// wordDicIndex.put(word, wordIndex);
-		// vector.add(wordIndex);
-		// wordIndex++;
-		// }
-		// vector.add(wordDicIndex.get(word));
-		// }
-		// int[] checkHash = saved_lsh.hash(vector);
-		// int[] checkHash = newsSig.getHash();
-		// List<NewsSig> candidate = new ArrayList<NewsSig>();
-		// for (NewsSig ns : listNewsSig) {
-		// if (ns.getId().equals(newsSig.getId())) {
-		// continue;
-		// }
-		// int[] hash1 = ns.getHash();
-		// for (int stage = 0; stage < STAGES; stage++) {
-		// if (hash1[stage] == checkHash[stage]) {
-		// candidate.add(ns);
-		// break;
-		// }
-		// }
-		// }
-		//
-		// List<JSONObject> jsonList = new ArrayList<JSONObject>();
-		// for (NewsSig candidateNews : candidate) {
-		// double jaccardSim = MinHash.jaccardIndex(newsSig.getVector(),
-		// candidateNews.getVector());
-		// if (jaccardSim >= 0.6) {
-		// JSONObject jsonObject = new JSONObject();
-		// jsonObject.put("url", candidateNews.getUrl());
-		// jsonObject.put("sim", jaccardSim);
-		// jsonObject.put("title", candidateNews.getTitle());
-		// jsonList.add(jsonObject);
-		// }
-		// }
-		// if (jsonList.size() < 1) {
-		// continue;
-		// } else {
-		// FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result"),
-		// dupCount + ":\t\t" + newsSig.getTitle() + "\t\t" + newsSig.getUrl() + "\n",
-		// "utf-8", true);
-		// for (JSONObject jsonObject : jsonList) {
-		// FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result"),
-		// jsonObject.toJSONString() + "\n", "utf-8",
-		// true);
-		// }
-		//
-		// }
-		// // Long endStart = System.currentTimeMillis();
-		// // System.out.println("Duplicate Time:"+ (endStart- duStart));
-		// FileUtils.write(new File("D:\\corpus\\duplicate\\long_dup_result"),
-		// "===========================================\n",
-		// "utf-8", true);
-		// dupCount++;
-		// }
-		reader.close();
+
 	}
 
 	/**
+	 * 从候选对中找到重复文章
+	 * 
+	 * @param pair
+	 * @param sim
+	 * @return
 	 */
-	public static void writeModelFromJSON(File file, TokenizerFactory factory) throws IOException {
-		File tempfile = File.createTempFile("lshModel", ".ser");
-		System.out.println(tempfile.getAbsolutePath());
-		FileOutputStream fout = new FileOutputStream(tempfile);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		BufferedReader reader = new BufferedReader(
-				(new InputStreamReader(new FileInputStream(file), Charsets.toCharset("utf-8"))));
-		LSHMinHash lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
-		Map<String, Integer> wordDicIndex = new HashMap<String, Integer>();
-		int wordIndex = 0;
-		// 序列化最小哈希
-		oos.writeObject(lshMinHash);
-		// 序列化分词工厂
-		// oos.writeObject(factory);
-		String line = reader.readLine();
-		List<NewsSig> listNewsSig = new ArrayList<NewsSig>();
-		int totalIndex = 0;
-		while (line != null) {
-			if (totalIndex > 80000) {
-				break;
-			}
-			JSONObject jsonObject = JSONObject.parseObject(line);
-			String content = jsonObject.getString("content");
-			String newsKey = jsonObject.getString("newsKey");
-			String url = jsonObject.getString("url");
-			String title = jsonObject.getString("title");
-			if (content.matches("\\s+") || newsKey.equals("")) {
-				line = reader.readLine();
-				continue;
-			}
-			Set<Integer> vector = new TreeSet<Integer>();
-			for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
-				String word = token.split(Contants.SLASH)[0];
-				if (wordDicIndex.get(word) == null) {
-					wordDicIndex.put(word, wordIndex++);
+	private List<Result> findDuplicateFromCandidate(Pair<NewsSig, List<NewsSig>> pair, double sim,
+			boolean isLargeFlag) {
+		List<Result> resultList = new ArrayList<Result>();
+		for (NewsSig ns : pair.b()) {
+			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
+			if (jaccardSim >= sim) {
+				// 如果isLargeFlag为true，下个判断就不会进行
+				if (isLargeFlag || !RegexUtils.judgeFormat(pair.a().getArticle(), ns.getArticle())) {
+					News dupNews = new News();
+					dupNews.setUrl(ns.getUrl());
+					dupNews.setId(ns.getId());
+					Result result = new Result();
+					result.setNews(dupNews);
+					result.setSimilariy(jaccardSim);
+					resultList.add(result);
 				}
-				vector.add(wordDicIndex.get(word));
+
 			}
-			int[] hash = lshMinHash.hash(vector);
-			NewsSig newsSig = new NewsSig();
-			newsSig.setId(newsKey);
-			newsSig.setHash(hash);
-			newsSig.setVector(vector);
-			newsSig.setUrl(url);
-			newsSig.setTitle(title);
-			listNewsSig.add(newsSig);
-			totalIndex++;
-			line = reader.readLine();
 		}
-
-		// 序列化集合数量
-		oos.writeObject(listNewsSig);
-		oos.writeObject(wordDicIndex);
-		reader.close();
-		oos.close();
-	}
-
-	public void readLSHAndHASHMatrix() throws IOException, ClassNotFoundException {
-		FileInputStream fin = new FileInputStream(file);
-		ObjectInputStream ois = new ObjectInputStream(fin);
-		LSHMinHash saved_lsh = (LSHMinHash) ois.readObject();
-		System.out.println(saved_lsh);
-	}
-
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		File file = new File("D:\\corpus\\duplicate\\duplicate_clean_json_version2");
-		StopWordTokenierFactory stopFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		readModel(stopFactory, file);
-		// File file = new File("D:\\corpus\\duplicate\\duplicate_clean_json_version2");
-		// StopWordTokenierFactory stopFactory = new
-		// StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		// try {
-		// writeModelFromJSON(file, stopFactory);
-		// } catch (IOException e) {
-		// System.out.println(ExceptionUtils.getFullStackTrace(e));
-		// }
+		return resultList;
 	}
 
 	/**
@@ -450,58 +275,72 @@ public class DuplicateUtils implements Externalizable {
 	 * 
 	 * @param dupNewsList
 	 */
-	private void initWordIndexAndHashes(List<News> dupNewsList) {
+	private void initWordIndexAndHashes(List<News> dupNewsList, boolean isLargeFlag) {
 		Long startTime = System.currentTimeMillis();
-		Integer wordIndex = 0;
-		for (int i = 0; i < dupNewsList.size() && bOWMap.keySet().size() < this.maxQueueSize; i++) {
+		for (int i = 0; i < dupNewsList.size() && (bOWMap.keySet().size() < this.maxQueueSize); i++) {
 			String article = dupNewsList.get(i).getArticle();
-			String id = dupNewsList.get(i).getId();
-			String url = dupNewsList.get(i).getUrl();
 			Set<Integer> vector = new TreeSet<Integer>();
 			for (String token : factory.tokenizer(article.toCharArray(), 0, article.length())) {
 				String word = token.split(Contants.SLASH)[0];
-				if (wordIndexMap.get(word) == null) {
-					wordIndexMap.put(word, wordIndex++);
-					this.dicSize = wordIndex;
-				}
-				vector.add(wordIndexMap.get(word));
+				wordIndexMap.increment(word);
+				vector.add(wordIndexMap.get(word).intValue());
 			}
 			int[] hash = lshMinHash.hash(vector);
-			NewsSig newsSig = new NewsSig();
-			newsSig.setId(id);
-			newsSig.setHash(hash);
-			newsSig.setArticle(article);
-			newsSig.setVector(vector);
-			newsSig.setUrl(url);
-			/* 存队列，记录队列索引 */
-			try {
-				bOWMap.put(url, newsSig);
-			} catch (Exception e) {
+			if (null == operateQueue(dupNewsList.get(i), hash, vector, isLargeFlag)) {
 				continue;
 			}
 		}
-		this.dicSize = wordIndex;
 		Long endTime = System.currentTimeMillis();
-		System.out.println("初始化时间:" + (endTime - startTime) + "ms");
+		logger.info(String.format("初始化时间：%ds", (endTime - startTime) / 1000));
 	}
 
+	/**
+	 * 查找候选对
+	 * @param news 待检查新闻
+	 * @param isLargeFlag 长短文本标志位，长文本true，短文本为false
+	 * @return 返回候选集
+	 */
+	private Pair<NewsSig, List<NewsSig>> findCandidate(News news, Boolean isLargeFlag) {
+		Set<Integer> vector = returnVector(news);
+		int[] checkHash = lshMinHash.hash(vector);
+		NewsSig underCheckNewsSig = operateQueue(news, checkHash, vector, isLargeFlag);
+		List<NewsSig> candidate = buildCandidateList(checkHash);
+		return new Pair<NewsSig, List<NewsSig>>(underCheckNewsSig, candidate);
+	}
+
+	/**
+	 * 通过新闻内容返回索引向量
+	 * 
+	 * @param news
+	 * @return
+	 */
 	private Set<Integer> returnVector(News news) {
 		Set<Integer> vector = new TreeSet<Integer>();
 		String content = news.getArticle();
 		int dicSize = wordIndexMap.keySet().size();
 		for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
-			String word = token.split("/")[0];
+			String[] term = token.split(Contants.SLASH);
+			if (term.length != 2) {
+				continue;
+			}
+			String word = term[0];
 			if (null == wordIndexMap.get(word)) {
-				wordIndexMap.put(word, this.dicSize);
+				wordIndexMap.increment(word);
 				vector.add(dicSize);
 				dicSize++;
 			}
-			vector.add(wordIndexMap.get(word));
+			vector.add(wordIndexMap.get(word).intValue());
 		}
 		return vector;
 	}
 
-	private List<NewsSig> buildCandidate(int[] checkHash) {
+	/**
+	 * 通过最小hash向量，建立候选集合
+	 * 
+	 * @param checkHash
+	 * @return
+	 */
+	private List<NewsSig> buildCandidateList(int[] checkHash) {
 		List<NewsSig> candidate = new ArrayList<NewsSig>();
 		for (Entry<String, NewsSig> entry : bOWMap.entrySet()) {
 			NewsSig ns = entry.getValue();
@@ -517,25 +356,34 @@ public class DuplicateUtils implements Externalizable {
 	}
 
 	/**
-	 * 获得候选对
+	 * 操作队列
 	 * 
-	 * @param id
-	 * @param content
-	 * @return Pair 二元组对，第一个为参数为待查重文章，第二个List为去重候选对
+	 * @param underCheckNewsSig
 	 */
-	private Pair<NewsSig, List<NewsSig>> findCandidate(News news) {
-		Set<Integer> vector = returnVector(news);
-		int[] checkHash = lshMinHash.hash(vector);
-		/* 查找候选集 */
-		NewsSig underCheckNewsSig = new NewsSig(checkHash, vector, news);
+	private NewsSig operateQueue(News news, int[] hash, Set<Integer> vector, boolean isLargeFlag) {
+		if (null == news.getUrl() || null == hash || null == vector || null == news.getId()) {
+			return null;
+		}
+		NewsSig underCheckNewsSig = null;
+		if (isLargeFlag) {
+			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).id(news.getId()).url(news.getUrl()).builder();
+		} else {
+			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).news(news).builder();
+		}
 		/* 将新来去重的文章，加入样本集 */
 		if (bOWMap.keySet().size() > this.maxQueueSize) {
 			bOWMap.remove(bOWMap.firstKey());
 		}
-		bOWMap.put(url, underCheckNewsSig);
-		return new Pair<NewsSig, List<NewsSig>>(underCheckNewsSig, candidate);
+		bOWMap.put(underCheckNewsSig.getUrl(), underCheckNewsSig);
+		return underCheckNewsSig;
 	}
 
+	/**
+	 * 根据解析URL的时间字符串，来排序的比较器
+	 * 
+	 * @author Admin
+	 *
+	 */
 	class NewsTimeComparator implements Comparator<String> {
 
 		@Override
@@ -574,19 +422,22 @@ public class DuplicateUtils implements Externalizable {
 
 	}
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	private void writeExternal(ObjectOutput out) throws IOException {
+		Long startTime = System.currentTimeMillis();
 		out.writeObject(lshMinHash);
 		out.writeObject(wordIndexMap);
 		out.writeObject(this.bOWMap);
-
+		Long endTime = System.currentTimeMillis();
+		logger.info(String.format("模型写入时间\t:%ds", (endTime - startTime) / 1000));
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	private void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		Long startTime = System.currentTimeMillis();
 		this.lshMinHash = (LSHMinHash) in.readObject();
-		this.wordIndexMap = (Map<String, Integer>) in.readObject();
+		this.wordIndexMap = (ObjectToCounterMap<String>) in.readObject();
 		this.bOWMap = (TreeMap<String, NewsSig>) in.readObject();
+		Long endTime = System.currentTimeMillis();
+		logger.info(String.format("模型载入时间\t:%ds", (endTime - startTime) / 1000));
 	}
 }

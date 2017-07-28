@@ -21,4 +21,6 @@ public class Result {
 		this.similariy = similariy;
 	}
 
+	
+	
 }
