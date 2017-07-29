@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.rouchtime.persistence.dao.NlpFinanceNewsNonRawMapper" >
-  <resultMap id="BaseResultMap" type="com.rouchtime.persistence.model.NlpFinanceNewsNonRaw" >
+<mapper namespace="com.rouchtime.persistence.dao.NlpDuplicateLongRawMapper" >
+  <resultMap id="BaseResultMap" type="com.rouchtime.persistence.model.NlpDuplicateLongRaw" >
     <!--
       WARNING - @mbg.generated
     -->
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
     <result column="news_key" property="newsKey" jdbcType="VARCHAR" />
     <result column="title" property="title" jdbcType="VARCHAR" />
-    <result column="url" property="url" jdbcType="VARCHAR" />
-    <result column="label" property="label" jdbcType="VARCHAR" />
+    <result column="datetime" property="datetime" jdbcType="TIMESTAMP" />
     <result column="content" property="content" jdbcType="LONGVARCHAR" />
+    <result column="dup_list" property="dupList" jdbcType="LONGVARCHAR" />
   </resultMap>
 </mapper>

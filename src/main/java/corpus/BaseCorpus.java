@@ -4,18 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
-import com.aliasi.corpus.Corpus;
-import com.aliasi.corpus.Handler;
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.alibaba.fastjson.JSONObject;
-import duplicate.pojo.News;
+import com.rouchtime.nlp.common.News;
 
 public abstract class BaseCorpus implements ICorpus {
 	protected Set<String> labels;

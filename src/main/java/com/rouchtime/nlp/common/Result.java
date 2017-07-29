@@ -1,4 +1,4 @@
-package duplicate.pojo;
+package com.rouchtime.nlp.common;
 
 public class Result {
 	private News news;
@@ -21,4 +21,6 @@ public class Result {
 		this.similariy = similariy;
 	}
 
+	
+	
 }

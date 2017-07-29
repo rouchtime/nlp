@@ -7,9 +7,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 
+import com.rouchtime.nlp.common.News;
+
 import corpus.FinanceNewsOrNonCorpus;
 import corpus.ICorpus;
-import duplicate.pojo.News;
 import tokenizer.FudanNLPTokenzierFactory;
 
 public class RealnewsTask {

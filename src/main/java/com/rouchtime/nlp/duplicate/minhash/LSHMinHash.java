@@ -1,4 +1,4 @@
-package duplicate.minhash;
+package com.rouchtime.nlp.duplicate.minhash;
 
 import java.util.Set;
 

@@ -1,4 +1,4 @@
-package duplicate.minhash;
+package com.rouchtime.nlp.duplicate.minhash;
 
 import java.io.Serializable;
 import java.security.InvalidParameterException;

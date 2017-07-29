@@ -11,7 +11,7 @@
                             http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
 	<!-- 自动扫描 -->
 	<!-- <context:component-scan base-package="com.cn.hnust" /> -->
-	<context:component-scan base-package="com.rouchtime.nlp">
+	<context:component-scan base-package="com.rouchtime">
 		<context:exclude-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
@@ -52,7 +52,7 @@
 
 
 	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.rouchtime.nlp.dao" />
+		<property name="basePackage" value="com.rouchtime.persistence.dao" />
 		<property name="properties">
 			<value>
 				mappers=tk.mybatis.mapper.common.Mapper

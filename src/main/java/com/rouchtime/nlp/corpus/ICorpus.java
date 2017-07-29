@@ -3,6 +3,9 @@ package com.rouchtime.nlp.corpus;
 import java.util.List;
 import java.util.Set;
 
+import com.aliasi.tokenizer.TokenizerFactory;
+import com.rouchtime.nlp.common.Term;
+
 public interface ICorpus {
 	/**
 	 * 获得所有标题
@@ -54,21 +57,21 @@ public interface ICorpus {
 	 * 获得所有分词
 	 * @return
 	 */
-	public List<String> words();
+	public List<Term> words(TokenizerFactory factory);
 	
 	/**
 	 * 根据标题获得分词
 	 * @param Title
 	 * @return
 	 */
-	public List<String> wordsFromTitle(String title);
+	public List<Term> wordsFromTitle(String title,TokenizerFactory factory);
 	
 	/**
 	 * 根据标签获得分词集
 	 * @param label
 	 * @return
 	 */
-	public List<String> wordsFromLabel(String label);
+	public List<Term> wordsFromLabel(String label,TokenizerFactory factory);
 	
 	/**
 	 * 获得所有句子

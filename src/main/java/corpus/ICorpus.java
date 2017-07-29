@@ -3,7 +3,7 @@ package corpus;
 import java.util.List;
 import java.util.Set;
 
-import duplicate.pojo.News;
+import com.rouchtime.nlp.common.News;
 
 /**
  * 

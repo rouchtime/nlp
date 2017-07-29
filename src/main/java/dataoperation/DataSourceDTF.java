@@ -13,9 +13,9 @@ import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.rouchtime.nlp.common.News;
 
 import corpus.ICorpus;
-import duplicate.pojo.News;
 
 public class DataSourceDTF extends DataSource {
 

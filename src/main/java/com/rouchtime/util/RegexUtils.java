@@ -1,4 +1,4 @@
-package utils;
+package com.rouchtime.util;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -36,7 +36,7 @@ public class RegexUtils {
 		dateFormat.add("yyyy.MM.dd");
 		dateFormat.add("MM.dd");
 		try {
-			duplicateRegex = IOUtils.readLines(RegexUtils.class.getResourceAsStream("/duplicate_regex.txt"), "utf-8");
+			duplicateRegex = IOUtils.readLines(RegexUtils.class.getResourceAsStream("/nlpdic/duplicate_regex.txt"), "utf-8");
 		} catch (IOException e) {
 			duplicateRegex = new ArrayList<String>();
 			e.printStackTrace();
@@ -210,6 +210,31 @@ public class RegexUtils {
 		return false;
 	}
 
+	public static String convertURLToNewsKey(String url) {
+		String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
+		if (s_time.length() == Contants.NEWS_URL_LENGTH) {
+			return s_time;
+		}
+		if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
+			s_time = s_time.substring(0, s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
+			return s_time;
+		}
+		return null;
+	}
+	
+	public static Date convertURLToDateTime(String url) throws ParseException {
+		SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
+		String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
+		if (s_time.length() == Contants.NEWS_URL_LENGTH) {
+			return sdf.parse(s_time);
+		}
+		if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
+			s_time = s_time.substring(0, s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
+			return sdf.parse(s_time);
+		}
+		return null;
+	}
+	
 	public static void main(String[] args) {
 		System.out.println(judgeFormat("父母不给玩手游 14岁熊孩子放火烧房", "只因父母不给玩手游14岁熊孩子放火烧房"));
 	}

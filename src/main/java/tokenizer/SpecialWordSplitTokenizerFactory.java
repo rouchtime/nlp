@@ -22,7 +22,7 @@ public class SpecialWordSplitTokenizerFactory implements Serializable, Tokenizer
 
 	public static SpecialWordSplitTokenizerFactory getIstance(String specialWord) {
 		if (instance == null) {
-			synchronized (HanLPTokenizerFactory.class) {
+			synchronized (SpecialWordSplitTokenizerFactory.class) {
 				if (instance == null) {
 					instance = new SpecialWordSplitTokenizerFactory(specialWord);
 				}
@@ -33,7 +33,7 @@ public class SpecialWordSplitTokenizerFactory implements Serializable, Tokenizer
 	
 	public static SpecialWordSplitTokenizerFactory getIstance() {
 		if (instance == null) {
-			synchronized (HanLPTokenizerFactory.class) {
+			synchronized (SpecialWordSplitTokenizerFactory.class) {
 				if (instance == null) {
 					instance = new SpecialWordSplitTokenizerFactory("\\s+");
 				}

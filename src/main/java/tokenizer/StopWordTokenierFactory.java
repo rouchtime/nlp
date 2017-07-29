@@ -24,7 +24,6 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 	private static final long serialVersionUID = -1312129063609071054L;
 
 	private final Set<String> mStopSet;
-
 	public StopWordTokenierFactory(TokenizerFactory factory, Set<String> stopSet) {
 		super(factory);
 		mStopSet = new HashSet<String>(stopSet);
@@ -36,7 +35,7 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 	 */
 	public StopWordTokenierFactory(TokenizerFactory factory) {
 		super(factory);
-		InputStream is = getClass().getResourceAsStream("/stopwords.txt");
+		InputStream is = getClass().getResourceAsStream("/nlpdic/stopwords.txt");
 		mStopSet = readFromFileNames(is);
 	}
 

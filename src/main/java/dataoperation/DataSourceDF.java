@@ -1,15 +1,18 @@
 package dataoperation;
 
+import java.io.IOException;
+import java.time.Clock;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.aliasi.util.ObjectToDoubleMap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.rouchtime.nlp.common.News;
 
 import corpus.ICorpus;
-import duplicate.pojo.News;
-
-import java.io.IOException;
-import java.time.Clock;
-import java.util.*;
 
 /**
  * Created by py on 16-9-21.
