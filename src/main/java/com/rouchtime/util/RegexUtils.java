@@ -236,6 +236,8 @@ public class RegexUtils {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(judgeFormat("父母不给玩手游 14岁熊孩子放火烧房", "只因父母不给玩手游14岁熊孩子放火烧房"));
+		
+//		System.out.println(judgeFormat("中式台球教学A29题型", "中式台球教学A28题型"));
+		System.out.println(judgeFormat("【理臣】2017年经济法-葛江静-第七章第6-8节b", "【理臣】2017年经济法-葛江静-第五章第9节h"));
 	}
 }

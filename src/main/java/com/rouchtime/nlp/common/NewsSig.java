@@ -100,13 +100,13 @@ public class NewsSig extends News {
     		super.setArticle(builder.article);
     	}
     	if(builder.title!=null) {
-    		super.setArticle(builder.title);
+    		super.setTitle(builder.title);
     	}
     	if(builder.url!=null) {
-    		super.setArticle(builder.url);
+    		super.setUrl(builder.url);
     	}
     	if(builder.id!=null) {
-    		super.setArticle(builder.id);
+    		super.setId(builder.id);
     	}
     }
 }

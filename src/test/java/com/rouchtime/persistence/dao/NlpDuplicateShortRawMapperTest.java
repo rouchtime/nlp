@@ -15,22 +15,29 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import com.alibaba.fastjson.JSONObject;
 import com.rouchtime.persistence.model.NlpDuplicateShortRaw;
 import com.rouchtime.util.RegexUtils;
+
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
-public class NlpDuplicateShortRawMapperTest extends AbstractJUnit4SpringContextTests{
+public class NlpDuplicateShortRawMapperTest extends AbstractJUnit4SpringContextTests {
 	@Autowired
 	NlpDuplicateShortRawMapper shortRawMapper;
+
 	@Test
 	public void testInsert() throws IOException {
 		List<String> list = FileUtils.readLines(new File("D:\\corpus\\duplicate\\dup_video_short_corpus.json"));
-		for(String line : list) {
+		for (String line : list) {
 			JSONObject jsonObject = JSONObject.parseObject(line);
-			String article= jsonObject.getString("article");
-			String url= jsonObject.getString("url");
-			String newsKey = RegexUtils.convertURLToNewsKey(url);
+			String article = jsonObject.getString("article");
+			String url = jsonObject.getString("url");
 			Date dateTime = null;
+			String newsKey = null;
 			try {
+				newsKey = RegexUtils.convertURLToNewsKey(url);
 				dateTime = RegexUtils.convertURLToDateTime(url);
 			} catch (ParseException e) {
+				continue;
+			} catch (StringIndexOutOfBoundsException e) {
+				continue;
+			} catch (Exception e) {
 				continue;
 			}
 			NlpDuplicateShortRaw raw = new NlpDuplicateShortRaw();
@@ -41,7 +48,7 @@ public class NlpDuplicateShortRawMapperTest extends AbstractJUnit4SpringContextT
 			raw.setTitle(article);
 			try {
 				int result = shortRawMapper.insertSelective(raw);
-			} catch(Exception e) {
+			} catch (Exception e) {
 				continue;
 			}
 		}

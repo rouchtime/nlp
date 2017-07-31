@@ -20,6 +20,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.ExceptionUtils;
+
+import com.aliasi.symbol.MapSymbolTable;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.Pair;
@@ -37,7 +39,7 @@ import com.rouchtime.nlp.duplicate.minhash.MinHash;
  */
 public class DuplicateUtils {
 	private static Logger logger = Logger.getLogger(DuplicateUtils.class);
-	private ObjectToCounterMap<String> wordIndexMap;
+	private MapSymbolTable wordIndexMap;
 	private LSHMinHash lshMinHash; /* lsh最小hash */
 	private TreeMap<String, NewsSig> bOWMap;
 	private TokenizerFactory factory;
@@ -65,7 +67,7 @@ public class DuplicateUtils {
 	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, int maxQueueSize) {
 		this.maxQueueSize = maxQueueSize;
 		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
+		wordIndexMap = new MapSymbolTable();
 		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
 		try {
 			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
@@ -94,7 +96,7 @@ public class DuplicateUtils {
 	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, Integer maxQueueSize, boolean isLargeFlag) {
 		this.maxQueueSize = maxQueueSize;
 		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
+		wordIndexMap = new MapSymbolTable();
 		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
 		try {
 			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
@@ -123,7 +125,7 @@ public class DuplicateUtils {
 	public DuplicateUtils(TokenizerFactory factory, int maxQueueSize, boolean isLargeFlag) {
 		this.maxQueueSize = maxQueueSize;
 		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
+		wordIndexMap = new MapSymbolTable();
 		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
 		lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
 	}
@@ -255,7 +257,7 @@ public class DuplicateUtils {
 			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
 			if (jaccardSim >= sim) {
 				// 如果isLargeFlag为true，下个判断就不会进行
-				if (isLargeFlag || !RegexUtils.judgeFormat(pair.a().getArticle(), ns.getArticle())) {
+				if (isLargeFlag) {
 					News dupNews = new News();
 					dupNews.setUrl(ns.getUrl());
 					dupNews.setId(ns.getId());
@@ -263,6 +265,17 @@ public class DuplicateUtils {
 					result.setNews(dupNews);
 					result.setSimilariy(jaccardSim);
 					resultList.add(result);
+				} else {
+					if(!RegexUtils.judgeFormat(pair.a().getArticle(), ns.getArticle())) {
+						News dupNews = new News();
+						dupNews.setUrl(ns.getUrl());
+						dupNews.setId(ns.getId());
+						dupNews.setArticle(ns.getArticle());
+						Result result = new Result();
+						result.setNews(dupNews);
+						result.setSimilariy(jaccardSim);
+						resultList.add(result);
+					}
 				}
 
 			}
@@ -282,8 +295,7 @@ public class DuplicateUtils {
 			Set<Integer> vector = new TreeSet<Integer>();
 			for (String token : factory.tokenizer(article.toCharArray(), 0, article.length())) {
 				String word = token.split(Contants.SLASH)[0];
-				wordIndexMap.increment(word);
-				vector.add(wordIndexMap.get(word).intValue());
+				vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 			}
 			int[] hash = lshMinHash.hash(vector);
 			if (null == operateQueue(dupNewsList.get(i), hash, vector, isLargeFlag)) {
@@ -317,19 +329,13 @@ public class DuplicateUtils {
 	private Set<Integer> returnVector(News news) {
 		Set<Integer> vector = new TreeSet<Integer>();
 		String content = news.getArticle();
-		int dicSize = wordIndexMap.keySet().size();
 		for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
 			String[] term = token.split(Contants.SLASH);
 			if (term.length != 2) {
 				continue;
 			}
 			String word = term[0];
-			if (null == wordIndexMap.get(word)) {
-				wordIndexMap.increment(word);
-				vector.add(dicSize);
-				dicSize++;
-			}
-			vector.add(wordIndexMap.get(word).intValue());
+			vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 		}
 		return vector;
 	}
@@ -368,7 +374,7 @@ public class DuplicateUtils {
 		if (isLargeFlag) {
 			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).id(news.getId()).url(news.getUrl()).builder();
 		} else {
-			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).news(news).builder();
+			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).id(news.getId()).url(news.getUrl()).article(news.getArticle()).builder();
 		}
 		/* 将新来去重的文章，加入样本集 */
 		if (bOWMap.keySet().size() > this.maxQueueSize) {
@@ -435,7 +441,7 @@ public class DuplicateUtils {
 	private void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		Long startTime = System.currentTimeMillis();
 		this.lshMinHash = (LSHMinHash) in.readObject();
-		this.wordIndexMap = (ObjectToCounterMap<String>) in.readObject();
+		this.wordIndexMap = (MapSymbolTable) in.readObject();
 		this.bOWMap = (TreeMap<String, NewsSig>) in.readObject();
 		Long endTime = System.currentTimeMillis();
 		logger.info(String.format("模型载入时间\t:%ds", (endTime - startTime) / 1000));
