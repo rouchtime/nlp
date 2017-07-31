@@ -11,8 +11,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 import com.rouchtime.persistence.model.NlpSougouPublicRaw;
-
-import weka.filters.unsupervised.attribute.StringToWordVector;
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
 public class NlpSougouPublicRawMapperTest extends AbstractJUnit4SpringContextTests{
 
@@ -20,7 +18,6 @@ public class NlpSougouPublicRawMapperTest extends AbstractJUnit4SpringContextTes
 	NlpSougouPublicRawMapper nlpSougouPublicMapper;
 	@Test
 	public void test() {
-		StringToWordVector
 //		nlpSougouPublicMapper.insert(record)
 		File[] files = new File("D:\\corpus\\download_corpus\\SogouC.reduced.20061127\\SogouC.reduced\\Reduced").listFiles();
 		for(File file : files) {
