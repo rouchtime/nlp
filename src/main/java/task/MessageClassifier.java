@@ -1,7 +1,6 @@
 package task;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +9,14 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
-import weka.attributeSelection.InfoGainAttributeEval;
+import com.rouchtime.expansion.weka.attributeSelection.CategoryDiscriminationEval;
+
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesMultinomial;
 import weka.classifiers.meta.AttributeSelectedClassifier;
 import weka.classifiers.meta.FilteredClassifier;
-import weka.classifiers.trees.J48;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -83,11 +82,11 @@ public class MessageClassifier implements Serializable {
 
 		/* 设置stringToWordVector */
 		m_filter = new StringToWordVector(10000);
-		m_filter.setTFTransform(true);
-		m_filter.setIDFTransform(true);
+//		m_filter.setTFTransform(true);
+//		m_filter.setIDFTransform(true);
 		m_filter.setOutputWordCounts(true);
-		m_filter.setNormalizeDocLength(
-				new SelectedTag(StringToWordVector.FILTER_NORMALIZE_ALL, StringToWordVector.TAGS_FILTER));
+//		m_filter.setNormalizeDocLength(
+//				new SelectedTag(StringToWordVector.FILTER_NORMALIZE_ALL, StringToWordVector.TAGS_FILTER));
 	}
 
 	public void writeModel(String outfilepath) throws Exception {
@@ -129,7 +128,9 @@ public class MessageClassifier implements Serializable {
 	public void evaluateFeatureSelect(int featureSize, String outputPath) throws Exception {
 		FilteredClassifier filterClassifier = new FilteredClassifier();
 		AttributeSelectedClassifier attributeSelectClassifier = new AttributeSelectedClassifier();
-		InfoGainAttributeEval eval = new InfoGainAttributeEval();
+//		InfoGainAttributeEval eval = new InfoGainAttributeEval();
+//		eval.setBinarizeNumericAttributes(true);
+		CategoryDiscriminationEval eval = new CategoryDiscriminationEval();
 		Ranker ranker = new Ranker();
 		ranker.setNumToSelect(30000);
 		NaiveBayesMultinomial nbm = new NaiveBayesMultinomial();
@@ -138,11 +139,12 @@ public class MessageClassifier implements Serializable {
 		attributeSelectClassifier.setSearch(ranker);
 		filterClassifier.setClassifier(attributeSelectClassifier);
 		filterClassifier.setFilter(m_filter);
-		Evaluation evaluation = new Evaluation(m_Data);
-		evaluation.crossValidateModel(filterClassifier, m_Data, 10, new Random(System.currentTimeMillis()));
-		FileUtils.write(new File(outputPath),
-				evaluation.weightedFMeasure() + "\n" + evaluation.precision(0) + "\n" + evaluation.precision(1) + "\n",
-				"utf-8", true);
+		filterClassifier.buildClassifier(m_Data);
+//		Evaluation evaluation = new Evaluation(m_Data);
+//		evaluation.crossValidateModel(filterClassifier, m_Data, 2, new Random(System.currentTimeMillis()));
+//		FileUtils.write(new File(outputPath),
+//				evaluation.weightedFMeasure() + "\n" + evaluation.precision(0) + "\n" + evaluation.precision(1) + "\n",
+//				"utf-8", true);
 	}
 
 	public void printVector(String outfile) throws Exception {
