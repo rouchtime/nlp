@@ -1,4 +1,4 @@
-package com.rouchtime.expansion.weka.attributeSelection;
+package com.rouchtime.ml.wekaExplore;
 
 import java.util.Enumeration;
 

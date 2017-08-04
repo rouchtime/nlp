@@ -19,15 +19,9 @@ public class StopNatureTokenizerFactory extends ModifyTokenTokenizerFactory impl
 
 	private final Set<String> mStopSet;
 
-	public StopNatureTokenizerFactory(TokenizerFactory factory, Set<String> stopSet) {
-		super(factory);
-		InputStream is = getClass().getResourceAsStream("/stopnature");
-		mStopSet = readFromFileNames(is);
-	}
-
 	public StopNatureTokenizerFactory(TokenizerFactory factory) {
 		super(factory);
-		InputStream is = getClass().getResourceAsStream("/stopnature.txt");
+		InputStream is = getClass().getResourceAsStream("/nlpdic/stopnature.txt");
 		mStopSet = readFromFileNames(is);
 	}
 	

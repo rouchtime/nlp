@@ -9,7 +9,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
-import com.rouchtime.expansion.weka.attributeSelection.CategoryDiscriminationEval;
+import com.rouchtime.ml.wekaExplore.CategoryDiscriminationEval;
 
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;

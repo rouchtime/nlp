@@ -78,6 +78,20 @@ public class RegexUtils {
 		return dates;
 	}
 
+	public static String cleanSpecialWord(String text) {
+		String regex = "\\s+|　+|&nbsp+|#+| +|[\\u0000]+";
+		return text.replaceAll(regex, "");
+	}
+	
+    public static String stringToHexString(String s) {  
+        String str = "";  
+        for (int i = 0; i < s.length(); i++) {  
+            int ch = (int) s.charAt(i);  
+            String s4 = Integer.toHexString(ch);  
+            str = str + s4;  
+        }  
+        return str;  
+    }  
 	/**
 	 * 解析包含点的日期，如2017.2.2等
 	 * 
@@ -235,9 +249,33 @@ public class RegexUtils {
 		return null;
 	}
 	
+	public static  Long getTimeStamp(String url) {
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
+			String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
+			if (s_time.length() == Contants.NEWS_URL_LENGTH) {
+				Date date = sdf.parse(s_time);
+				return date.getTime();
+			}
+			if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
+				s_time = s_time.substring(0,
+						s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
+				Date date = sdf.parse(s_time);
+				return date.getTime();
+			}
+		} catch (ParseException exception) {
+			return null;
+		}
+		return null;
+	}
+	
+	public static String cleanParaAndImgLabel(String raw) {
+		return raw.replaceAll("\\$#imgidx=\\d{4}#\\$", "").replaceAll("!@#!@", "");
+	}
+	
 	public static void main(String[] args) {
-		
+		System.out.println(cleanParaAndImgLabel("$#imgidx=0001#$!@#!@ 泰中铁路示意图!@#!@ 原标题：泰国内阁批准泰中铁路合作项目曼谷"));
 //		System.out.println(judgeFormat("中式台球教学A29题型", "中式台球教学A28题型"));
-		System.out.println(judgeFormat("【理臣】2017年经济法-葛江静-第七章第6-8节b", "【理臣】2017年经济法-葛江静-第五章第9节h"));
+//		System.out.println(judgeFormat("【理臣】2017年经济法-葛江静-第七章第6-8节b", "【理臣】2017年经济法-葛江静-第五章第9节h"));
 	}
 }

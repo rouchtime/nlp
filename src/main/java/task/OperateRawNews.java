@@ -13,7 +13,6 @@ import org.apache.commons.io.FileUtils;
 
 import com.aliasi.classify.TradNaiveBayesClassifier;
 import com.alibaba.fastjson.JSONObject;
-import com.rouchtime.nlp.common.NewsSig;
 import com.rouchtime.util.RegexUtils;
 
 public class OperateRawNews {

@@ -15,7 +15,7 @@
 		<context:exclude-filter type="annotation"
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
-	
+
 	<!-- 引入配置文件 -->
 	<bean id="propertyConfigurer"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -47,16 +47,15 @@
 		<property name="dataSource" ref="dataSource" />
 		<!-- 自动扫描mapping.xml文件 -->
 		<property name="mapperLocations" value="classpath*:/mapper/*Mapper.xml" />
-<!-- 		<property name="typeAliasesPackage" value="com.isea533.mybatis.model"/> -->
+		<!-- <property name="typeAliasesPackage" value="com.isea533.mybatis.model"/> -->
 	</bean>
 
 
+	<!-- -->
 	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.rouchtime.persistence.dao" />
 		<property name="properties">
-			<value>
-				mappers=tk.mybatis.mapper.common.Mapper
-			</value>
+			<value>mappers=tk.mybatis.mapper.common.Mapper,com.rouchtime.persistence.custom.mapper.OtherCommonMapper</value>
 		</property>
 	</bean>
 

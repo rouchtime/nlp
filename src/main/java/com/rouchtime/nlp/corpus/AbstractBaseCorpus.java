@@ -41,14 +41,18 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 
 	@Override
 	public Set<String> labels() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String labelFromTitles(String Title) {
-		// TODO Auto-generated method stub
-		return null;
+	public String labelFromTitles(String title) {
+		Example example = new Example(getSuperClassGenricType(this.getClass(), 0));
+		example.createCriteria().andCondition("title=", title);
+		List<T> list = mapper.selectByExample(example);
+		if (null == list || 0 == list.size()) {
+			return null;
+		}
+		return list.get(0).getLabel();
 	}
 
 	@Override
