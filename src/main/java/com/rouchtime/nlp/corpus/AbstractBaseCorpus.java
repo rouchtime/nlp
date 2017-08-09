@@ -3,15 +3,24 @@ package com.rouchtime.nlp.corpus;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.rouchtime.nlp.common.Term;
+import com.rouchtime.persistence.custom.mapper.OtherCommonMapper;
 import com.rouchtime.persistence.model.AbstractRaw;
+import com.rouchtime.persistence.model.NlpGuojiRaw;
+import com.rouchtime.persistence.model.NlpSougouPublicRaw;
 import com.rouchtime.util.Contants;
+import com.rouchtime.util.RegexUtils;
 
 import tk.mybatis.mapper.common.Mapper;
 import tk.mybatis.mapper.entity.Example;
@@ -40,7 +49,7 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 	}
 
 	@Override
-	public Set<String> labels() {
+	public List<String> labels() {
 		return null;
 	}
 
@@ -101,12 +110,12 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 		}
 		String content = list.get(0).getContent();
 		List<Term> terms = new ArrayList<Term>();
-		for(String t : factory.tokenizer(content.toCharArray(), 0, content.length())) {
+		for (String t : factory.tokenizer(content.toCharArray(), 0, content.length())) {
 			String[] wn = t.split(Contants.SLASH);
-			if(wn.length != 2) {
+			if (wn.length != 2) {
 				continue;
 			}
-			Term term = new Term(wn[0],wn[1]);
+			Term term = new Term(wn[0], wn[1]);
 			terms.add(term);
 		}
 		// TODO Auto-generated method stub
@@ -137,6 +146,44 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 		return null;
 	}
 
+	@Override
+	public List<String> fileidFromLabel(String label) {
+		Example example = new Example(getSuperClassGenricType(this.getClass(), 0));
+		example.createCriteria().andCondition("label=", label);
+		List<T> list = mapper.selectByExample(example);
+		List<String> fileids = new ArrayList<String>();
+		for (T t : list) {
+			fileids.add(t.getNewsKey());
+		}
+		return fileids;
+	}
+	
+	
+	public Map<String,List<String>> produceTrainAndTestByRate(double rate) {
+		List<String> trainFileids = new ArrayList<String>();
+		List<String> testFileids = new ArrayList<String>();
+		for(String label : labels()) {
+			List<String> fileids = fileidFromLabel(label);
+			LinkedList<String> list = new LinkedList<String>(fileids);
+			int totalSize = fileids.size();
+			int trainSize = (int) (totalSize * rate);
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(System.currentTimeMillis());
+				int rIndex = r.nextInt(totalSize);
+				trainFileids.add(list.get(rIndex));
+				list.remove(rIndex);
+				totalSize--;
+			}
+			for(String fileid : list) {
+				testFileids.add(fileid);
+			}
+		}
+		Map<String,List<String>> mapTrainAndTest = new HashMap<String,List<String>>();
+		mapTrainAndTest.put("train", trainFileids);
+		mapTrainAndTest.put("test", testFileids);
+		return mapTrainAndTest;
+	}
+	
 	/**
 	 * 根据类别，返回泛型T的类型，提供给通用mapper使用
 	 * 

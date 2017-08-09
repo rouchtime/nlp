@@ -313,8 +313,8 @@ public class DuplicateUtils {
 	private Pair<Fingerprint, List<Fingerprint>> findCandidate(DuplicateBean duplicateBean, Boolean isLargeFlag) {
 		Set<Integer> vector = returnVector(duplicateBean);
 		int[] checkHash = lshMinHash.hash(vector);
-		Fingerprint underCheckNewsSig = operateQueue(duplicateBean, checkHash, vector, isLargeFlag);
 		List<Fingerprint> candidate = buildCandidateList(checkHash);
+		Fingerprint underCheckNewsSig = operateQueue(duplicateBean, checkHash, vector, isLargeFlag);
 		return new Pair<Fingerprint, List<Fingerprint>>(underCheckNewsSig, candidate);
 	}
 

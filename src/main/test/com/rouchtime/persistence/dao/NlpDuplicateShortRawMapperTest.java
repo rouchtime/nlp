@@ -24,34 +24,34 @@ public class NlpDuplicateShortRawMapperTest extends AbstractJUnit4SpringContextT
 	@Test
 	public void testInsert() throws IOException {
 		List<String> list = FileUtils.readLines(new File("D:\\corpus\\duplicate\\dup_video_short_corpus.json"));
-		for (String line : list) {
-			JSONObject jsonObject = JSONObject.parseObject(line);
-			String article = jsonObject.getString("article");
-			String url = jsonObject.getString("url");
-			Date dateTime = null;
-			String newsKey = null;
-			try {
-				newsKey = RegexUtils.convertURLToNewsKey(url);
-				dateTime = RegexUtils.convertURLToDateTime(url);
-			} catch (ParseException e) {
-				continue;
-			} catch (StringIndexOutOfBoundsException e) {
-				continue;
-			} catch (Exception e) {
-				continue;
-			}
-			NlpDuplicateShortRaw raw = new NlpDuplicateShortRaw();
-			raw.setContent(article);
-			raw.setUrl(url);
-			raw.setNewsKey(newsKey);
-			raw.setDatetime(dateTime);
-			raw.setTitle(article);
-			try {
-				int result = shortRawMapper.insertSelective(raw);
-			} catch (Exception e) {
-				continue;
-			}
-		}
+//		for (String line : list) {
+//			JSONObject jsonObject = JSONObject.parseObject(line);
+//			String article = jsonObject.getString("article");
+//			String url = jsonObject.getString("url");
+//			Date dateTime = null;
+//			String newsKey = null;
+//			try {
+//				newsKey = RegexUtils.convertURLToNewsKey(url);
+//				dateTime = RegexUtils.convertURLToDateTime(url);
+//			} catch (ParseException e) {
+//				continue;
+//			} catch (StringIndexOutOfBoundsException e) {
+//				continue;
+//			} catch (Exception e) {
+//				continue;
+//			}
+//			NlpDuplicateShortRaw raw = new NlpDuplicateShortRaw();
+//			raw.setContent(article);
+//			raw.setUrl(url);
+//			raw.setNewsKey(newsKey);
+//			raw.setDatetime(dateTime);
+//			raw.setTitle(article);
+//			try {
+//				int result = shortRawMapper.insertSelective(raw);
+//			} catch (Exception e) {
+//				continue;
+//			}
+//		}
 	}
 
 }
