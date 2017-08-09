@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.TokenizerFactory;
@@ -34,7 +35,7 @@ public class FeNews2ClassCorpus extends BaseCorpus {
 	protected void createCorpusToRAM() {
 		try {
 			BufferedReader reader = new BufferedReader(
-					(new InputStreamReader(new FileInputStream(new File(path)), Charsets.toCharset("utf-8"))));
+					(new InputStreamReader(new FileInputStream(new File(path)), "utf-8")));
 			String line = reader.readLine();
 			while (line != null) {
 				String title = JSONObject.parseObject(line).getString("title");

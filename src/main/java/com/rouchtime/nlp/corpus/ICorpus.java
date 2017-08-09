@@ -24,7 +24,7 @@ public interface ICorpus {
 	 * 获得所有标签
 	 * @return
 	 */
-	public Set<String> labels();
+	public List<String> labels();
 	
 	/**
 	 * 根据标题返回标签
@@ -92,4 +92,9 @@ public interface ICorpus {
 	 * @return
 	 */
 	public List<String> sentsFromLabel(String label);
+	public List<String> fileidFromLabel(String label);
+//	public List<String> fileids();
+//	public String rawFromfileids(String fileids);
+//	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory);
+//	public String labelFromfileids(String fileids);
 }

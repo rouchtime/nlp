@@ -47,10 +47,14 @@
 			<generatedKey column="id" sqlStatement="Mysql" identity="true" />
 		</table>
 
-		<!-- <table tableName="nlp_finance_news_non_raw" -->
-		<!-- enableCountByExample="false" enableDeleteByExample="false" -->
-		<!-- enableSelectByExample="false" enableUpdateByExample="false" -->
-		<!-- selectByExampleQueryId="false"> -->
-		<!-- </table> -->
+        <table tableName="nlp_sougou_public_raw" >
+          <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
+        </table>
+
+<!-- 		<table tableName="nlp_finance_news_non_raw" -->
+<!-- 		enableCountByExample="false" enableDeleteByExample="false" -->
+<!-- 		enableSelectByExample="false" enableUpdateByExample="false" -->
+<!-- 		selectByExampleQueryId="false"> -->
+<!-- 		</table> -->
 	</context>
 </generatorConfiguration>

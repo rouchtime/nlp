@@ -1,6 +1,10 @@
 package com.rouchtime.nlp.common;
 
 public class Term {
+	@Override
+	public String toString() {
+		return "Term [word=" + word + ", nature=" + nature + "]";
+	}
 	private String word;
 	private String nature;
 	public Term(String word, String nature) {

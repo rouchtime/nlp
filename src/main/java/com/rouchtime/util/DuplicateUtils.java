@@ -1,4 +1,5 @@
 package com.rouchtime.util;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,12 +21,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.ExceptionUtils;
+
+import com.aliasi.symbol.MapSymbolTable;
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.Pair;
-import com.rouchtime.nlp.common.News;
-import com.rouchtime.nlp.common.NewsSig;
-import com.rouchtime.nlp.common.Result;
+import com.rouchtime.nlp.duplicate.bean.DuplicateBean;
+import com.rouchtime.nlp.duplicate.bean.Fingerprint;
+import com.rouchtime.nlp.duplicate.bean.Result;
 import com.rouchtime.nlp.duplicate.minhash.LSHMinHash;
 import com.rouchtime.nlp.duplicate.minhash.MinHash;
 
@@ -37,14 +39,16 @@ import com.rouchtime.nlp.duplicate.minhash.MinHash;
  */
 public class DuplicateUtils {
 	private static Logger logger = Logger.getLogger(DuplicateUtils.class);
-	private ObjectToCounterMap<String> wordIndexMap;
+	private MapSymbolTable wordIndexMap;
 	private LSHMinHash lshMinHash; /* lsh最小hash */
-	private TreeMap<String, NewsSig> bOWMap;
+	private TreeMap<Long, Fingerprint> bOWMap;
 	private TokenizerFactory factory;
 	private int maxQueueSize; /* bOWSet的队列最大数 */
 	private static final int STAGES = 10;
 	private static final int BUCKETS = 10000;
 	private static final double THRESHOLD = 0.5;
+
+	private static volatile DuplicateUtils instance;
 
 	/**
 	 * 初始化构造器,为了维护之前的短文去重而保留，已开发新的可选择长短文本的构造器
@@ -62,17 +66,16 @@ public class DuplicateUtils {
 	 * @param maxQueueSize
 	 *            队列最大维护数量
 	 */
-	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, int maxQueueSize) {
-		this.maxQueueSize = maxQueueSize;
-		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
-		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
-		try {
-			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
-			initWordIndexAndHashes(dupNewsList, false);
-		} catch (Exception e) {
-			e.printStackTrace();
+	public static DuplicateUtils getIstance(List<DuplicateBean> dupNewsList, TokenizerFactory factory,
+			int maxQueueSize) {
+		if (instance == null) {
+			synchronized (DuplicateUtils.class) {
+				if (instance == null) {
+					instance = new DuplicateUtils(dupNewsList, factory, maxQueueSize);
+				}
+			}
 		}
+		return instance;
 	}
 
 	/**
@@ -91,17 +94,16 @@ public class DuplicateUtils {
 	 * @param maxQueueSize
 	 * @param isLargeFlag
 	 */
-	public DuplicateUtils(List<News> dupNewsList, TokenizerFactory factory, Integer maxQueueSize, boolean isLargeFlag) {
-		this.maxQueueSize = maxQueueSize;
-		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
-		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
-		try {
-			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
-			initWordIndexAndHashes(dupNewsList, isLargeFlag);
-		} catch (Exception e) {
-			e.printStackTrace();
+	public static DuplicateUtils getIstance(List<DuplicateBean> dupNewsList, TokenizerFactory factory,
+			Integer maxQueueSize, boolean isLargeFlag) {
+		if (instance == null) {
+			synchronized (DuplicateUtils.class) {
+				if (instance == null) {
+					instance = new DuplicateUtils(dupNewsList, factory, maxQueueSize, isLargeFlag);
+				}
+			}
 		}
+		return instance;
 	}
 
 	/**
@@ -120,12 +122,15 @@ public class DuplicateUtils {
 	 * @param isLargeFlag
 	 *            长短文本标志位
 	 */
-	public DuplicateUtils(TokenizerFactory factory, int maxQueueSize, boolean isLargeFlag) {
-		this.maxQueueSize = maxQueueSize;
-		this.factory = factory;
-		wordIndexMap = new ObjectToCounterMap<String>();
-		bOWMap = new TreeMap<String, NewsSig>(new NewsTimeComparator());
-		lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+	public static DuplicateUtils getIstance(TokenizerFactory factory, int maxQueueSize, boolean isLargeFlag) {
+		if (instance == null) {
+			synchronized (DuplicateUtils.class) {
+				if (instance == null) {
+					instance = new DuplicateUtils(factory, maxQueueSize, isLargeFlag);
+				}
+			}
+		}
+		return instance;
 	}
 
 	/**
@@ -138,21 +143,15 @@ public class DuplicateUtils {
 	 * @param maxQueueSize
 	 *            队列最大维护数量
 	 */
-	public DuplicateUtils(String modelPath, TokenizerFactory factory, int maxQueueSize) {
-		FileInputStream fin;
-		try {
-			fin = new FileInputStream(new File(modelPath));
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			readExternal(ois);
-		} catch (FileNotFoundException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
-		} catch (IOException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			logger.error(ExceptionUtils.getFullStackTrace(e));
+	public static DuplicateUtils getIstance(String modelPath, TokenizerFactory factory, int maxQueueSize) {
+		if (instance == null) {
+			synchronized (DuplicateUtils.class) {
+				if (instance == null) {
+					instance = new DuplicateUtils(modelPath, factory, maxQueueSize);
+				}
+			}
 		}
-		this.factory = factory;
+		return instance;
 	}
 
 	/**
@@ -163,8 +162,8 @@ public class DuplicateUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public List<Result> duplicateShort(News news, double sim) throws IOException {
-		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news, false);
+	public List<Result> duplicateShort(DuplicateBean duplicateBean, double sim) throws IOException {
+		Pair<Fingerprint, List<Fingerprint>> pair = findCandidate(duplicateBean, false);
 		if (null == pair) {
 			return null;
 		}
@@ -179,8 +178,8 @@ public class DuplicateUtils {
 	 * @param sim
 	 * @return
 	 */
-	public List<Result> duplicateLong(News news, double sim) {
-		Pair<NewsSig, List<NewsSig>> pair = findCandidate(news, true);
+	public List<Result> duplicateLong(DuplicateBean duplicateBean, double sim) {
+		Pair<Fingerprint, List<Fingerprint>> pair = findCandidate(duplicateBean, true);
 		if (null == pair) {
 			return null;
 		}
@@ -196,7 +195,7 @@ public class DuplicateUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized boolean removeFromQueue(String url) throws Exception {
+	public synchronized boolean removeFromQueue(Long url) throws Exception {
 		if (null == url) {
 			throw new Exception("News's url is NULL!");
 		}
@@ -215,6 +214,7 @@ public class DuplicateUtils {
 
 	/**
 	 * 根据指定路径，生成模型
+	 * 
 	 * @param path
 	 * @return
 	 */
@@ -222,7 +222,7 @@ public class DuplicateUtils {
 		SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
 		if (!path.endsWith("/"))
 			path += "/LSHModel_";
-		else 
+		else
 			path += "LSHModel_";
 		String modelPath = path + sdf.format(new Date()) + ".model";
 		FileOutputStream fout;
@@ -248,21 +248,29 @@ public class DuplicateUtils {
 	 * @param sim
 	 * @return
 	 */
-	private List<Result> findDuplicateFromCandidate(Pair<NewsSig, List<NewsSig>> pair, double sim,
+	private List<Result> findDuplicateFromCandidate(Pair<Fingerprint, List<Fingerprint>> pair, double sim,
 			boolean isLargeFlag) {
 		List<Result> resultList = new ArrayList<Result>();
-		for (NewsSig ns : pair.b()) {
+		for (Fingerprint ns : pair.b()) {
 			double jaccardSim = MinHash.jaccardIndex(pair.a().getVector(), ns.getVector());
 			if (jaccardSim >= sim) {
 				// 如果isLargeFlag为true，下个判断就不会进行
-				if (isLargeFlag || !RegexUtils.judgeFormat(pair.a().getArticle(), ns.getArticle())) {
-					News dupNews = new News();
-					dupNews.setUrl(ns.getUrl());
-					dupNews.setId(ns.getId());
+				if (isLargeFlag) {
+					DuplicateBean dupBean = new DuplicateBean();
+					dupBean.setId(ns.getId());
 					Result result = new Result();
-					result.setNews(dupNews);
+					result.setDuplicateBean(dupBean);
 					result.setSimilariy(jaccardSim);
 					resultList.add(result);
+				} else {
+					if (!RegexUtils.judgeFormat(pair.a().getRaw(), ns.getRaw())) {
+						DuplicateBean dupBean = new DuplicateBean();
+						dupBean.setId(ns.getId());
+						Result result = new Result();
+						result.setDuplicateBean(dupBean);
+						result.setSimilariy(jaccardSim);
+						resultList.add(result);
+					}
 				}
 
 			}
@@ -275,15 +283,14 @@ public class DuplicateUtils {
 	 * 
 	 * @param dupNewsList
 	 */
-	private void initWordIndexAndHashes(List<News> dupNewsList, boolean isLargeFlag) {
+	private void initWordIndexAndHashes(List<DuplicateBean> dupNewsList, boolean isLargeFlag) {
 		Long startTime = System.currentTimeMillis();
 		for (int i = 0; i < dupNewsList.size() && (bOWMap.keySet().size() < this.maxQueueSize); i++) {
-			String article = dupNewsList.get(i).getArticle();
+			String article = dupNewsList.get(i).getRaw();
 			Set<Integer> vector = new TreeSet<Integer>();
 			for (String token : factory.tokenizer(article.toCharArray(), 0, article.length())) {
 				String word = token.split(Contants.SLASH)[0];
-				wordIndexMap.increment(word);
-				vector.add(wordIndexMap.get(word).intValue());
+				vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 			}
 			int[] hash = lshMinHash.hash(vector);
 			if (null == operateQueue(dupNewsList.get(i), hash, vector, isLargeFlag)) {
@@ -296,16 +303,19 @@ public class DuplicateUtils {
 
 	/**
 	 * 查找候选对
-	 * @param news 待检查新闻
-	 * @param isLargeFlag 长短文本标志位，长文本true，短文本为false
+	 * 
+	 * @param news
+	 *            待检查新闻
+	 * @param isLargeFlag
+	 *            长短文本标志位，长文本true，短文本为false
 	 * @return 返回候选集
 	 */
-	private Pair<NewsSig, List<NewsSig>> findCandidate(News news, Boolean isLargeFlag) {
-		Set<Integer> vector = returnVector(news);
+	private Pair<Fingerprint, List<Fingerprint>> findCandidate(DuplicateBean duplicateBean, Boolean isLargeFlag) {
+		Set<Integer> vector = returnVector(duplicateBean);
 		int[] checkHash = lshMinHash.hash(vector);
-		NewsSig underCheckNewsSig = operateQueue(news, checkHash, vector, isLargeFlag);
-		List<NewsSig> candidate = buildCandidateList(checkHash);
-		return new Pair<NewsSig, List<NewsSig>>(underCheckNewsSig, candidate);
+		List<Fingerprint> candidate = buildCandidateList(checkHash);
+		Fingerprint underCheckNewsSig = operateQueue(duplicateBean, checkHash, vector, isLargeFlag);
+		return new Pair<Fingerprint, List<Fingerprint>>(underCheckNewsSig, candidate);
 	}
 
 	/**
@@ -314,22 +324,16 @@ public class DuplicateUtils {
 	 * @param news
 	 * @return
 	 */
-	private Set<Integer> returnVector(News news) {
+	private Set<Integer> returnVector(DuplicateBean duplicateBean) {
 		Set<Integer> vector = new TreeSet<Integer>();
-		String content = news.getArticle();
-		int dicSize = wordIndexMap.keySet().size();
+		String content = duplicateBean.getRaw();
 		for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
 			String[] term = token.split(Contants.SLASH);
 			if (term.length != 2) {
 				continue;
 			}
 			String word = term[0];
-			if (null == wordIndexMap.get(word)) {
-				wordIndexMap.increment(word);
-				vector.add(dicSize);
-				dicSize++;
-			}
-			vector.add(wordIndexMap.get(word).intValue());
+			vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 		}
 		return vector;
 	}
@@ -340,10 +344,10 @@ public class DuplicateUtils {
 	 * @param checkHash
 	 * @return
 	 */
-	private List<NewsSig> buildCandidateList(int[] checkHash) {
-		List<NewsSig> candidate = new ArrayList<NewsSig>();
-		for (Entry<String, NewsSig> entry : bOWMap.entrySet()) {
-			NewsSig ns = entry.getValue();
+	private List<Fingerprint> buildCandidateList(int[] checkHash) {
+		List<Fingerprint> candidate = new ArrayList<Fingerprint>();
+		for (Entry<Long, Fingerprint> entry : bOWMap.entrySet()) {
+			Fingerprint ns = entry.getValue();
 			int[] hash1 = ns.getHash();
 			for (int stage = 0; stage < STAGES; stage++) {
 				if (hash1[stage] == checkHash[stage]) {
@@ -360,22 +364,25 @@ public class DuplicateUtils {
 	 * 
 	 * @param underCheckNewsSig
 	 */
-	private NewsSig operateQueue(News news, int[] hash, Set<Integer> vector, boolean isLargeFlag) {
-		if (null == news.getUrl() || null == hash || null == vector || null == news.getId()) {
+	private Fingerprint operateQueue(DuplicateBean duplicateBean, int[] hash, Set<Integer> vector,
+			boolean isLargeFlag) {
+		if (null == hash || null == vector || null == duplicateBean.getId()) {
 			return null;
 		}
-		NewsSig underCheckNewsSig = null;
+		Fingerprint underCheckFp = null;
 		if (isLargeFlag) {
-			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).id(news.getId()).url(news.getUrl()).builder();
+			underCheckFp = new Fingerprint.FingerprintBuilder(hash, vector).id(duplicateBean.getId())
+					.timeStamp(duplicateBean.getTimestamp()).builder();
 		} else {
-			underCheckNewsSig = new NewsSig.NewsSigBuilder(hash, vector).news(news).builder();
+			underCheckFp = new Fingerprint.FingerprintBuilder(hash, vector).id(duplicateBean.getId())
+					.timeStamp(duplicateBean.getTimestamp()).raw(duplicateBean.getRaw()).builder();
 		}
 		/* 将新来去重的文章，加入样本集 */
 		if (bOWMap.keySet().size() > this.maxQueueSize) {
 			bOWMap.remove(bOWMap.firstKey());
 		}
-		bOWMap.put(underCheckNewsSig.getUrl(), underCheckNewsSig);
-		return underCheckNewsSig;
+		bOWMap.put(underCheckFp.getTimestamp(), underCheckFp);
+		return underCheckFp;
 	}
 
 	/**
@@ -384,42 +391,15 @@ public class DuplicateUtils {
 	 * @author Admin
 	 *
 	 */
-	class NewsTimeComparator implements Comparator<String> {
+	class NewsTimeComparator implements Comparator<Long> {
 
 		@Override
-		public int compare(String url1, String url2) {
-			if (url1 == null || url2 == null) {
-				throw new NullPointerException("Comparing url is Null!");
+		public int compare(Long timestamp1, Long timestamp2) {
+			if (timestamp1 == null || timestamp2 == null) {
+				throw new NullPointerException("Comparing timestamp is Null!");
 			}
-			Long ltime1 = getTimeStamp(url1);
-			Long ltime2 = getTimeStamp(url2);
-			if (ltime1 == null || ltime2 == null) {
-				throw new NullPointerException("Time parse Exception!");
-			}
-
-			return ltime1.compareTo(ltime2);
+			return timestamp1.compareTo(timestamp2);
 		}
-
-		private Long getTimeStamp(String url) {
-			try {
-				SimpleDateFormat sdf = new SimpleDateFormat(Contants.URL_TIME_REGEX);
-				String s_time = url.substring(url.lastIndexOf(Contants.SLASH) + 1, url.lastIndexOf(Contants.DOT));
-				if (s_time.length() == Contants.NEWS_URL_LENGTH) {
-					Date date = sdf.parse(s_time);
-					return date.getTime();
-				}
-				if (s_time.length() == Contants.VIDEO_PIC_URL_LENGTH) {
-					s_time = s_time.substring(0,
-							s_time.length() - (Contants.VIDEO_PIC_URL_LENGTH - Contants.NEWS_URL_LENGTH));
-					Date date = sdf.parse(s_time);
-					return date.getTime();
-				}
-			} catch (ParseException exception) {
-				return null;
-			}
-			return null;
-		}
-
 	}
 
 	private void writeExternal(ObjectOutput out) throws IOException {
@@ -435,9 +415,61 @@ public class DuplicateUtils {
 	private void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		Long startTime = System.currentTimeMillis();
 		this.lshMinHash = (LSHMinHash) in.readObject();
-		this.wordIndexMap = (ObjectToCounterMap<String>) in.readObject();
-		this.bOWMap = (TreeMap<String, NewsSig>) in.readObject();
+		this.wordIndexMap = (MapSymbolTable) in.readObject();
+		this.bOWMap = (TreeMap<Long, Fingerprint>) in.readObject();
 		Long endTime = System.currentTimeMillis();
 		logger.info(String.format("模型载入时间\t:%ds", (endTime - startTime) / 1000));
+	}
+
+	private DuplicateUtils(List<DuplicateBean> dupNewsList, TokenizerFactory factory, int maxQueueSize) {
+		this.maxQueueSize = maxQueueSize;
+		this.factory = factory;
+		wordIndexMap = new MapSymbolTable();
+		bOWMap = new TreeMap<Long, Fingerprint>(new NewsTimeComparator());
+		try {
+			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+			initWordIndexAndHashes(dupNewsList, false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private DuplicateUtils(List<DuplicateBean> dupNewsList, TokenizerFactory factory, Integer maxQueueSize,
+			boolean isLargeFlag) {
+		this.maxQueueSize = maxQueueSize;
+		this.factory = factory;
+		wordIndexMap = new MapSymbolTable();
+		bOWMap = new TreeMap<Long, Fingerprint>(new NewsTimeComparator());
+		try {
+			lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+			initWordIndexAndHashes(dupNewsList, isLargeFlag);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private DuplicateUtils(TokenizerFactory factory, int maxQueueSize, boolean isLargeFlag) {
+		this.maxQueueSize = maxQueueSize;
+		this.factory = factory;
+		wordIndexMap = new MapSymbolTable();
+		bOWMap = new TreeMap<Long, Fingerprint>(new NewsTimeComparator());
+		lshMinHash = new LSHMinHash(STAGES, BUCKETS, THRESHOLD, System.currentTimeMillis());
+	}
+
+	private DuplicateUtils(String modelPath, TokenizerFactory factory, int maxQueueSize) {
+		FileInputStream fin;
+		try {
+			fin = new FileInputStream(new File(modelPath));
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			readExternal(ois);
+		} catch (FileNotFoundException e) {
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (IOException e) {
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			logger.error(ExceptionUtils.getFullStackTrace(e));
+		}
+		this.factory = factory;
 	}
 }
