@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import com.aliasi.classify.TfIdfClassifierTrainer;
+import com.aliasi.util.ObjectToSet;
 import com.alibaba.fastjson.JSONObject;
 import com.rouchtime.nlp.common.News;
 import com.rouchtime.nlp.common.Result;
@@ -112,6 +114,10 @@ public class DuplicateUtilsTest extends TestCase {
 	}
 	
 	public void testOriginDupContrust() {
-		
+		ObjectToSet<String, String> objectToSet = new  ObjectToSet<>();
+		objectToSet.addMember("ly", "abactinally");
+		objectToSet.addMember("zy", "boozy");
+		System.out.println(objectToSet.getSet("ly"));
+		TfIdfClassifierTrainer<E>
 	}
 }
