@@ -22,6 +22,7 @@ import com.rouchtime.nlp.duplicate.bean.DuplicateBean;
 import com.rouchtime.nlp.duplicate.bean.Result;
 import com.rouchtime.util.DuplicateUtils;
 import com.rouchtime.util.RegexUtils;
+import com.rouchtime.util.TextStatistics;
 import com.rouchtime.util.WekaUtils;
 
 import tokenizer.HanLPTokenizerFactory;
@@ -47,7 +48,16 @@ public class GuojiClear {
 			HanLPTokenizerFactory.getIstance());
 	static Map<String, Pair> mapURL = new HashMap<String, Pair>();
 	static DuplicateUtils duplicateUtils = DuplicateUtils.getIstance(stopTokenizerFactory, 100000, true);
-
+	public static void statics() {
+		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
+		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
+		TextStatistics ts = new TextStatistics(guojiCorpus, stopNatureTokenizerFactory);
+		System.out.println(ts.combineTopNDocumentFrequency(1000).size());
+	}
+	
+	
 	public static void duplicate(String path) throws IOException {
 		File[] files = new File(path).listFiles();
 		for (File file : files) {
@@ -533,6 +543,6 @@ public class GuojiClear {
 		// combineSmote();
 		// subCate("D://corpus//06");
 //		 modelTrain();
-		testModel();
+		statics();
 	}
 }

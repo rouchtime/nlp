@@ -1,28 +1,26 @@
-package dataoperation;
+package com.rouchtime.nlp.featureSelection.source;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import com.aliasi.tokenizer.TokenizerFactory;
 import com.google.common.collect.Table;
-
-import corpus.ICorpus;
+import com.rouchtime.nlp.corpus.ICorpus;
 
 
 public abstract class DataSource {
-
-
-
+	
     public DataSource() throws IOException {
 
     }
 
-    public boolean reset(ICorpus corpus) throws IOException {
-        resetImpl(corpus);
-        return load(corpus);
+    public boolean reset(ICorpus corpus,TokenizerFactory factory) throws IOException {
+        resetImpl(corpus,factory);
+        return load();
     }
-    abstract protected boolean resetImpl(ICorpus corpus) throws IOException;
-    abstract public boolean load(ICorpus corpus) throws IOException;
+    abstract protected boolean resetImpl(ICorpus corpus,TokenizerFactory factory) throws IOException;
+    abstract public boolean load() throws IOException;
     // 得到词典
     abstract public Set<String> getDictionary();
     //得到所有类别标识
@@ -32,7 +30,7 @@ public abstract class DataSource {
     // 得到词典的大小
     abstract public int getDicSize();
     //文档数
-    abstract public double getDocCn(boolean useSlow);
+    abstract public double getDocCn();
 
     // 工具方法，将map中对应键的值加x
     public static void addToMap(Map<String, Double> map, String key, double num){

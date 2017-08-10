@@ -1,4 +1,4 @@
-package dataoperation;
+package com.rouchtime.nlp.featureSelection.source;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -9,13 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.rouchtime.nlp.common.News;
-
-import corpus.ICorpus;
+import com.rouchtime.nlp.common.Term;
+import com.rouchtime.nlp.corpus.ICorpus;
 
 public class DataSourceDTF extends DataSource {
 
@@ -24,13 +25,16 @@ public class DataSourceDTF extends DataSource {
 	private ObjectToCounterMap<String> labelCounter;
 	private ObjectToDoubleMap<String> labelWordCount;
 	private ObjectToDoubleMap<String> wordDF;
-
+	private TokenizerFactory mfactory;
+	private ICorpus mCorpus;
 	public DataSourceDTF() throws IOException {
 		super();
 	}
 
 	@Override
-	protected boolean resetImpl(ICorpus corpus) throws IOException {
+	protected boolean resetImpl(ICorpus corpus,TokenizerFactory factory) throws IOException {
+		mCorpus = corpus;
+		mfactory = factory;
 		docToLabel = new HashMap<String, String>();
 		label_word_tf = HashBasedTable.create();
 		labelCounter = new ObjectToCounterMap<String>();
@@ -40,33 +44,22 @@ public class DataSourceDTF extends DataSource {
 	}
 
 	@Override
-	public boolean load(ICorpus corpus) throws IOException {
-		long stime = Clock.systemDefaultZone().millis();
-		System.out.print("load datasourceDF from " + corpus.path() + "...");
-
-		// 得到各个类文件夹的path
-		Set<String> labels = corpus.labels();
-		for (String cp : labels) { // 遍历每个类别文件夹，读取文档
-			String label = cp; // 类别名称
+	public boolean load() throws IOException {
+		for(String label:mCorpus.labels()) {
 			labelCounter.increment(label, 1);
-			List<News> newsList = corpus.newsFromLabel(label);
-			for (News news : newsList) {// 遍历所有的文档
-				docToLabel.put(news.getTitle(), label);
+			for(String fileid : mCorpus.fileidFromLabel(label)) {
 				Set<String> appearedWordIndoc = new HashSet<>();
-				// 记录在文档中已经出现的词
-				List<String> words = corpus.words(news.getTitle());
-				for (String word : words) {
+				for(Term term : mCorpus.wordFromfileids(fileid, mfactory)) {
+					String word = term.getWord();
 					if (appearedWordIndoc.contains(word)) {
 						wordDF.increment(word, 1);
 						appearedWordIndoc.add(word);
 					}
 					addToMap(label_word_tf, label, word, 1.0);
-					labelWordCount.increment(cp, 1.0);
+					labelWordCount.increment(label, 1.0);
 				}
 			}
 		}
-
-		System.out.println(" using " + (Clock.systemDefaultZone().millis() - stime) * 0.5 / 1000);
 		return true;
 	}
 
@@ -99,7 +92,7 @@ public class DataSourceDTF extends DataSource {
 	}
 
 	@Override
-	public double getDocCn(boolean useSlow) {
+	public double getDocCn() {
 		double sum = 0.0;
 		for(String label : labelCounter.keySet()) {
 			sum += labelCounter.get(label).doubleValue();
