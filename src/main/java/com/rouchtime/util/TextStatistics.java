@@ -221,4 +221,15 @@ public class TextStatistics {
 
 		return words;
 	}
+	
+	public Set<String> getWordDictionary() {
+		DataSource dsdf = null;
+		try {
+			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
+		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
+				| IOException e) {
+			System.err.println("Build DF instance fail: " + e.getMessage());
+		}
+		return ((DataSourceDF) dsdf).getDictionary();
+	}
 }

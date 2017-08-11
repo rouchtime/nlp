@@ -8,6 +8,7 @@ import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.hankcs.hanlp.HanLP;
 import com.hankcs.hanlp.seg.common.Term;
+import com.hankcs.hanlp.tokenizer.NLPTokenizer;
 
 public class HanLPTokenizerFactory implements Serializable, TokenizerFactory {
 
@@ -42,7 +43,7 @@ public class HanLPTokenizerFactory implements Serializable, TokenizerFactory {
 
 		public HanLPTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
-			parse = HanLP.segment(text);
+			parse = NLPTokenizer.segment(text);
 
 		}
 

@@ -98,4 +98,14 @@ public class GuojiCorpus extends AbstractBaseCorpus<NlpGuojiRaw> {
 		}
 		return list.get(0).getLabel();
 	}
+	
+	public String titleFromfileid(String fileids) {
+		Example example = new Example(NlpGuojiRaw.class);
+		example.createCriteria().andCondition("news_key=", fileids);
+		List<NlpGuojiRaw> list = mapper.selectByExample(example);
+		if (null == list || 0 == list.size()) {
+			return null;
+		}
+		return list.get(0).getTitle();
+	}
 }
