@@ -30,7 +30,6 @@ import com.rouchtime.nlp.duplicate.bean.DuplicateBean;
 import com.rouchtime.nlp.duplicate.bean.Result;
 import com.rouchtime.util.DuplicateUtils;
 import com.rouchtime.util.RegexUtils;
-import com.rouchtime.util.TextStatistics;
 import com.rouchtime.util.WekaUtils;
 
 import tokenizer.HanLPKeyWordTTokenizerFactory;
@@ -99,21 +98,21 @@ public class GuojiClear {
 	}
 
 	public static void statics() throws IOException {
-		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
-		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
-		TextStatistics ts = new TextStatistics(guojiCorpus, stopNatureTokenizerFactory);
-		for(String word : ts.getWordDictionary()) {
-			ObjectToDoubleMap<String> map = ts.getDocumentFrequencyByWordInEveryLabel(word);
-			if(map.keySet().size() < 2) {
-				String key = map.keysOrderedByValueList().get(0);
-				if(map.get(key) > 5.0) {
-					FileUtils.write(new File("D://corpus//word"), word + "\t\t\t" + map.toString()+ "\n","utf-8",true);
-				}
-			}
-		}
-		System.out.println();
+//		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+//		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
+//		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
+//		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
+//		TextStatistics ts = new TextStatistics(guojiCorpus, stopNatureTokenizerFactory);
+//		for(String word : ts.getWordDictionary()) {
+//			ObjectToDoubleMap<String> map = ts.getDocumentFrequencyByWordInEveryLabel(word);
+//			if(map.keySet().size() < 2) {
+//				String key = map.keysOrderedByValueList().get(0);
+//				if(map.get(key) > 5.0) {
+//					FileUtils.write(new File("D://corpus//word"), word + "\t\t\t" + map.toString()+ "\n","utf-8",true);
+//				}
+//			}
+//		}
+//		System.out.println();
 	}
 
 	public static void duplicate(String path) throws IOException {

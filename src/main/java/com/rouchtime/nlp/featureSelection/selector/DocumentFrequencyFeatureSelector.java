@@ -1,4 +1,4 @@
-package com.rouchtime.util;
+package com.rouchtime.nlp.featureSelection.selector;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -9,8 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToDoubleMap;
@@ -21,15 +21,18 @@ import com.rouchtime.nlp.featureSelection.source.DataSource;
 import com.rouchtime.nlp.featureSelection.source.DataSourceDF;
 import com.rouchtime.nlp.featureSelection.source.SimpleDataSourcePool;
 
-public class TextStatistics {
+public class DocumentFrequencyFeatureSelector {
+
 	private ICorpus mCorpus;
 	private TokenizerFactory mFactory;
 
-	public TextStatistics(ICorpus corpus, TokenizerFactory factory) {
+	public DocumentFrequencyFeatureSelector(ICorpus corpus, TokenizerFactory factory) {
 		mCorpus = corpus;
 		mFactory = factory;
 	}
 
+	
+	
 	/**
 	 * 获得给定词在某一类中的文档频率
 	 * 
@@ -38,13 +41,7 @@ public class TextStatistics {
 	 * @return
 	 */
 	public double getDocumentFrequencyByWordAndLabel(String label, String word) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		return ((DataSourceDF) dsdf).getWordDF(label, word);
 	}
 
@@ -55,13 +52,7 @@ public class TextStatistics {
 	 * @return <code>ObjectToDoubleMap</code>,为该词在各类的文档频率
 	 */
 	public ObjectToDoubleMap<String> getDocumentFrequencyByWordInEveryLabel(String word) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		ObjectToDoubleMap<String> objectToDoubleMap = new ObjectToDoubleMap<String>();
 		for (String label : dsdf.getLabels()) {
 			objectToDoubleMap.increment(label, ((DataSourceDF) dsdf).getWordDF(label, word));
@@ -76,30 +67,19 @@ public class TextStatistics {
 	 * @return
 	 */
 	public Double getDocumentFrequencyByWord(String word) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		return ((DataSourceDF) dsdf).getWordDFMacro(word);
 	}
 
 	/**
 	 * 获得指定类下的TOPN词
+	 * 
 	 * @param label
 	 * @param topN
 	 * @return
 	 */
 	public Map<String, Double> getDocumentFrequencyByLabel(String label, int topN) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		Table<String, String, Double> table = ((DataSourceDF) dsdf).getmLabelWordDf();
 		Map<String, Double> map = table.row(label);
 		List<Map.Entry<String, Double>> list = new LinkedList<Map.Entry<String, Double>>(map.entrySet());
@@ -123,19 +103,14 @@ public class TextStatistics {
 
 	/**
 	 * 根据指定类，获得max和min之间的DF
+	 * 
 	 * @param label
 	 * @param max
 	 * @param min
 	 * @return
 	 */
 	public Map<String, Double> getDocumentFrequencyByLabel(String label, double max, double min) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		Table<String, String, Double> table = ((DataSourceDF) dsdf).getmLabelWordDf();
 		Map<String, Double> map = table.row(label);
 		List<Map.Entry<String, Double>> list = new LinkedList<Map.Entry<String, Double>>(map.entrySet());
@@ -155,13 +130,7 @@ public class TextStatistics {
 	}
 
 	public Map<String, Double> getDocumentFrequency(int topN) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		ObjectToDoubleMap<String> table = ((DataSourceDF) dsdf).getWordDF();
 		List<ScoredObject<String>> list = table.scoredObjectsOrderedByValueList();
 		Map<String, Double> result = new LinkedHashMap<String, Double>();
@@ -176,14 +145,24 @@ public class TextStatistics {
 		return result;
 	}
 
-	public Map<String, Double> getDocumentFrequency(double max, double min) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
+	public Map<String, Double> getDocumentFrequency(int startIndex, int endIndex) {
+		DataSource dsdf = initDataSource();
+		ObjectToDoubleMap<String> table = ((DataSourceDF) dsdf).getWordDF();
+		List<ScoredObject<String>> list = table.scoredObjectsOrderedByValueList();
+		Map<String, Double> result = new LinkedHashMap<String, Double>();
+		int topCount = 0;
+		for (ScoredObject<String> entry : list) {
+			if (topCount <= startIndex || topCount >= endIndex) {
+				continue;
+			}
+			result.put(entry.getObject(), entry.score());
+			topCount++;
 		}
+		return result;
+	}
+
+	public Map<String, Double> getDocumentFrequency(double max, double min) {
+		DataSource dsdf = initDataSource();
 		ObjectToDoubleMap<String> table = ((DataSourceDF) dsdf).getWordDF();
 		List<ScoredObject<String>> list = table.scoredObjectsOrderedByValueList();
 		Map<String, Double> result = new LinkedHashMap<String, Double>();
@@ -196,13 +175,7 @@ public class TextStatistics {
 	}
 
 	public Set<String> combineTopNDocumentFrequency(int TopN) {
-		DataSource dsdf = null;
-		try {
-			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
-		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
-				| IOException e) {
-			System.err.println("Build DF instance fail: " + e.getMessage());
-		}
+		DataSource dsdf = initDataSource();
 		Table<String, String, Double> table = ((DataSourceDF) dsdf).getmLabelWordDf();
 		Set<String> words = new HashSet<String>();
 		for (String label : ((DataSourceDF) dsdf).getLabels()) {
@@ -221,8 +194,13 @@ public class TextStatistics {
 
 		return words;
 	}
-	
+
 	public Set<String> getWordDictionary() {
+		DataSource dsdf = initDataSource();
+		return ((DataSourceDF) dsdf).getDictionary();
+	}
+
+	private DataSource initDataSource() {
 		DataSource dsdf = null;
 		try {
 			dsdf = SimpleDataSourcePool.create(mCorpus, DataSourceDF.class, mFactory);
@@ -230,6 +208,7 @@ public class TextStatistics {
 				| IOException e) {
 			System.err.println("Build DF instance fail: " + e.getMessage());
 		}
-		return ((DataSourceDF) dsdf).getDictionary();
+		return dsdf;
 	}
+
 }
