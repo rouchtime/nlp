@@ -1,18 +1,27 @@
 package task;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.aliasi.classify.ConfusionMatrix;
 import com.aliasi.tokenizer.TokenizerFactory;
+import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.Pair;
 import com.rouchtime.ml.wekaExplore.WekaTextClassifyUtils;
 import com.rouchtime.nlp.common.Term;
@@ -21,8 +30,10 @@ import com.rouchtime.nlp.duplicate.bean.DuplicateBean;
 import com.rouchtime.nlp.duplicate.bean.Result;
 import com.rouchtime.util.DuplicateUtils;
 import com.rouchtime.util.RegexUtils;
+import com.rouchtime.util.TextStatistics;
 import com.rouchtime.util.WekaUtils;
 
+import tokenizer.HanLPKeyWordTTokenizerFactory;
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
@@ -40,11 +51,70 @@ import weka.filters.unsupervised.attribute.StringToWordVector;
 import weka.filters.unsupervised.instance.NonSparseToSparse;
 
 public class GuojiClear {
-
+	private static Logger log = Logger.getLogger(GuojiClear.class);
 	static StopWordTokenierFactory stopTokenizerFactory = new StopWordTokenierFactory(
 			HanLPTokenizerFactory.getIstance());
 	static Map<String, Pair> mapURL = new HashMap<String, Pair>();
 	static DuplicateUtils duplicateUtils = DuplicateUtils.getIstance(stopTokenizerFactory, 100000, true);
+
+	public static void supplimentArticle(String path) {
+		try {
+			BufferedReader reader = new BufferedReader(
+					(new InputStreamReader(new FileInputStream(new File(path)), Charsets.toCharset("utf-8"))));
+			String line = reader.readLine();
+			while (line != null) {
+				String[] splits = line.split("\t+");
+				if(splits.length < 4) {
+					
+					log.error("length < 4:" + line);
+					line = reader.readLine();
+					continue;
+				}
+				StringBuilder sb = new StringBuilder();
+				for(int i=3;i<splits.length;i++) {
+					sb.append(splits[i]);
+				}
+				if(splits[0].equals("yule")) {
+					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+				}
+				if(splits[0].equals("tiyu")) {
+					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+				}
+				if(splits[0].equals("caijing")) {
+					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+				}
+				if(splits[0].equals("keji")) {
+					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+				}
+				line = reader.readLine();
+			}
+		} catch (Exception e) {
+			log.error(
+					ExceptionUtils.getRootCauseMessage(e));
+		}
+	}
+
+	public static void statics() throws IOException {
+		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
+		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
+		TextStatistics ts = new TextStatistics(guojiCorpus, stopNatureTokenizerFactory);
+		for(String word : ts.getWordDictionary()) {
+			ObjectToDoubleMap<String> map = ts.getDocumentFrequencyByWordInEveryLabel(word);
+			if(map.keySet().size() < 2) {
+				String key = map.keysOrderedByValueList().get(0);
+				if(map.get(key) > 5.0) {
+					FileUtils.write(new File("D://corpus//word"), word + "\t\t\t" + map.toString()+ "\n","utf-8",true);
+				}
+			}
+		}
+		System.out.println();
+	}
 
 	public static void duplicate(String path) throws IOException {
 		File[] files = new File(path).listFiles();
@@ -52,17 +122,29 @@ public class GuojiClear {
 			List<String> lines = FileUtils.readLines(file);
 			for (String line : lines) {
 				String[] splits = line.split("\t+");
-				if (line.split("\t+").length != 3) {
-					System.err.println("ErrorLine:" + line);
-					continue;
+				// if (line.split("\t+").length != 3) {
+				// FileUtils.write(new File("D://corpus//category//guoji//erro"),
+				// file.getName()+"\t"+
+				// line + "\n", "utf-8", true);
+				// continue;
+				// }
+				String id = "";
+				try {
+					id = RegexUtils.convertURLToNewsKey(splits[0]);
+					mapURL.put(id, new Pair<String, String>(splits[0], file.getName()));
+				} catch (Exception e) {
+					FileUtils.write(new File("D://corpus//category//guoji//erro"), line + "\n", "utf-8", true);
 				}
-				String id = RegexUtils.convertURLToNewsKey(splits[0]);
-				mapURL.put(id, new Pair<String, String>(splits[0], file.getName()));
+
 				if (id == null) {
-					System.err.println("ErrorNewsKey:" + splits[0]);
+					FileUtils.write(new File("D://corpus//category//guoji//erro"), line + "\n", "utf-8", true);
 					continue;
 				}
-				String raw = RegexUtils.cleanParaAndImgLabel(splits[2]);
+				StringBuffer sb = new StringBuffer();
+				for (int i = 2; i < splits.length; i++) {
+					sb.append(splits[i]);
+				}
+				String raw = RegexUtils.cleanParaAndImgLabel(sb.toString());
 				DuplicateBean duplicateBean = new DuplicateBean();
 				duplicateBean.setId(id);
 				duplicateBean.setRaw(raw);
@@ -77,7 +159,7 @@ public class GuojiClear {
 								mapURL.get(result.getDuplicateBean().getId()) + "\n", "utf-8", true);
 					}
 				} else {
-					FileUtils.write(new File("D://corpus//category//guoji//nonduplicate_zhang//" + file.getName()),
+					FileUtils.write(new File("D://corpus//category//guoji//nonduplicate_xiaolei//" + file.getName()),
 							line + "\n", "utf-8", true);
 				}
 			}
@@ -121,8 +203,6 @@ public class GuojiClear {
 		return wtcf.StringToVector().stringFreeStructure();
 	}
 
-
-
 	public static List<String> getLabels(Instances data) {
 		List<String> labels = new ArrayList<String>();
 		for (int i = 0; i < data.classAttribute().numValues(); i++) {
@@ -136,11 +216,11 @@ public class GuojiClear {
 		String testTotalPath = path + "\\testtotal.arff";
 		Instances testdata = DataSource.read(testTotalPath);
 		testdata.setClassIndex(testdata.numAttributes() - 1);
-		
+
 		String trainTotalPath = path + "\\traintotal.arff";
 		Instances data1 = DataSource.read(trainTotalPath);
 		WekaTextClassifyUtils wtcf = new WekaTextClassifyUtils(1000, data1);
-		
+
 		String path00 = path + "\\train\\00.arff";
 		Instances data00 = DataSource.read(path00);
 		WekaTextClassifyUtils wtcf00 = new WekaTextClassifyUtils(1000, data00);
@@ -196,14 +276,22 @@ public class GuojiClear {
 		StringBuffer sb = new StringBuffer();
 		sb.append(confusionMatrix.macroAvgPrecision());
 		sb.append(confusionMatrix.macroAvgRecall());
-        for (int i = 0; i < confusionMatrix.categories().length; ++i) {
-        	sb.append(confusionMatrix.categories()[i]).append("\n");
-        	sb.append("accuracy:");sb.append(confusionMatrix.oneVsAll(i).accuracy());sb.append("\n");
-        	sb.append("recall:");sb.append(confusionMatrix.oneVsAll(i).recall());sb.append("\n");
-        	sb.append("fMeasure:");sb.append(confusionMatrix.oneVsAll(i).fMeasure());sb.append("\n");
-        	sb.append("size:");sb.append(confusionMatrix.oneVsAll(i).positiveReference());sb.append("\n");
-        }
-		FileUtils.write(new File("D://result"), sb.toString(),"utf-8");
+		for (int i = 0; i < confusionMatrix.categories().length; ++i) {
+			sb.append(confusionMatrix.categories()[i]).append("\n");
+			sb.append("accuracy:");
+			sb.append(confusionMatrix.oneVsAll(i).accuracy());
+			sb.append("\n");
+			sb.append("recall:");
+			sb.append(confusionMatrix.oneVsAll(i).recall());
+			sb.append("\n");
+			sb.append("fMeasure:");
+			sb.append(confusionMatrix.oneVsAll(i).fMeasure());
+			sb.append("\n");
+			sb.append("size:");
+			sb.append(confusionMatrix.oneVsAll(i).positiveReference());
+			sb.append("\n");
+		}
+		FileUtils.write(new File("D://result"), sb.toString(), "utf-8");
 	}
 
 	public static void combineAB(String trainPath, String testPath) throws IOException {
@@ -327,7 +415,8 @@ public class GuojiClear {
 			}
 		}
 	}
-	static Map<String,String> labelMap = new HashMap<String,String>();
+
+	static Map<String, String> labelMap = new HashMap<String, String>();
 	static {
 		labelMap.put("04", "国际外交");
 		labelMap.put("05", "意外事故");
@@ -338,6 +427,7 @@ public class GuojiClear {
 		labelMap.put("11", "文化");
 		labelMap.put("12", "涉中事件");
 	}
+
 	public static void combineRaw(String raw, String label, TokenizerFactory factory, String path) throws IOException {
 		if (label.equals("警匪犯罪") || label.equals("社会乱象") || label.equals("恐怖袭击") || label.equals("武装运动")) {
 			writeToWekaFromRaw(raw, factory, path, "00", label);
@@ -383,6 +473,61 @@ public class GuojiClear {
 		}
 	}
 
+	public static void writeToWekaFile(String path) throws IOException {
+		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
+		
+		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
+		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
+		List<String> fileids = guojiCorpus.fileids();
+		Set<String> stop_nature_set = new HashSet<String>();
+		stop_nature_set.add("nr");
+		stop_nature_set.add("nrj");
+		stop_nature_set.add("nrf");
+		stop_nature_set.add("nrf");
+		for (String fileid : fileids) {
+			String label = guojiCorpus.labelFromfileids(fileid);
+			if(label.equals("改革政策")) {
+				String raw = guojiCorpus.rawFromfileids(fileid);
+				StringBuilder sb = new StringBuilder();
+				for(int i=0;i<3;i++) {
+					sb.append(guojiCorpus.titleFromfileid(fileid)).append(",");
+				}
+				for(String keyword : HanLPKeyWordTTokenizerFactory.getIstance(10).tokenizer(raw.toCharArray(), 0, raw.length())) {
+					for(int i=0;i<3;i++) {
+						sb.append(keyword).append(",");
+					}
+				}
+				sb.append(raw);
+				String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(sb.toString()), stopNatureTokenizerFactory,
+						guojiCorpus.labelFromfileids(fileid),stop_nature_set);
+				if(wekaContent == null) {
+					continue;
+				}
+				FileUtils.write(new File(path), wekaContent + "\n", "utf-8", true);
+				continue;
+			}
+			
+			String raw = guojiCorpus.rawFromfileids(fileid);
+			StringBuilder sb = new StringBuilder();
+			for(int i=0;i<3;i++) {
+				sb.append(guojiCorpus.titleFromfileid(fileid)).append(",");
+			}
+			for(String keyword : HanLPKeyWordTTokenizerFactory.getIstance(10).tokenizer(raw.toCharArray(), 0, raw.length())) {
+				for(int i=0;i<3;i++) {
+					sb.append(keyword).append(",");
+				}
+			}
+			sb.append(raw);
+			String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(sb.toString()), stopNatureTokenizerFactory,
+					guojiCorpus.labelFromfileids(fileid));
+			if(wekaContent == null) {
+				continue;
+			}
+			FileUtils.write(new File(path), wekaContent + "\n", "utf-8", true);
+		}
+	}
+	
 	public static void writeToWekaFromRaw(String raw, TokenizerFactory factory, String path, String Combinelabel,
 			String label) throws IOException {
 		String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(raw), factory,
@@ -520,17 +665,21 @@ public class GuojiClear {
 		Instances ins = Filter.useFilter(SmoteInstances, nonSparseToSparse);
 		return ins;
 	}
-
+	
+	
+	
+	
 	public static void main(String[] args) throws Exception {
-		// duplicate(
-		// "D:\\corpus\\category\\guoji\\guoji_zhang_20170803\\guoji_zhang_20170803");
+		writeToWekaFile("D://corpus//category//guoji//weka_new_2017-8-11_cat24_title_keyword_nonature.arff");
+//		supplimentArticle("D:\\corpus\\url0810\\url0810.txt");
+//		duplicate("D:\\corpus\\category\\guoji\\20170811_小类补充");
 		// duplicate( "D:\\corpus\\category\\guoji\\guoji170803\\guoji170803");
 		// combineAB("D://corpus//category//guoji//AB//train",
 		// "D://corpus//category//guoji//AB//test");
 		// SMOTETest();
 		// combineSmote();
 		// subCate("D://corpus//06");
-//		 modelTrain();
-		testModel();
+		// modelTrain();
+//		statics();
 	}
 }

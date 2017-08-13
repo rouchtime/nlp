@@ -7,9 +7,9 @@ import org.apache.commons.io.FileUtils;
 
 import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
+import com.rouchtime.nlp.featureSelection.selector.CatgoryDiscriminating;
+import com.rouchtime.nlp.featureSelection.selector.WeightingMethod;
 
-import featureselection.selector.CatgoryDiscriminating;
-import featureselection.selector.WeightingMethod;
 import junit.framework.TestCase;
 import task.MessageClassifier;
 import tokenizer.FudanNLPTokenzierFactory;

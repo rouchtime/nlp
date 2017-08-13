@@ -56,5 +56,4 @@ public interface ICorpus {
 	String label(String fileid);
 
 	List<News> newsFromLabel(String label);
-
 }

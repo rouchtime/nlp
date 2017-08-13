@@ -1,4 +1,4 @@
-package featureselection.selector;
+package com.rouchtime.nlp.featureSelection.selector;
 
 import java.io.IOException;
 

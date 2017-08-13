@@ -93,8 +93,8 @@ public interface ICorpus {
 	 */
 	public List<String> sentsFromLabel(String label);
 	public List<String> fileidFromLabel(String label);
-//	public List<String> fileids();
+	public List<String> fileids();
 //	public String rawFromfileids(String fileids);
-//	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory);
+	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory);
 //	public String labelFromfileids(String fileids);
 }

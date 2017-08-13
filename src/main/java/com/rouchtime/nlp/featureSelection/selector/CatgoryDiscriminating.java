@@ -1,4 +1,4 @@
-package featureselection.selector;
+package com.rouchtime.nlp.featureSelection.selector;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,15 +11,16 @@ import com.aliasi.classify.TfIdfClassifierTrainer;
 import com.aliasi.features.BoundedFeatureExtractor;
 import com.aliasi.features.KnownFeatureExtractor;
 import com.aliasi.features.ZScoreFeatureExtractor;
+import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.FeatureExtractor;
 import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.ScoredObject;
+import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.source.DataSource;
+import com.rouchtime.nlp.featureSelection.source.DataSourceDTF;
+import com.rouchtime.nlp.featureSelection.source.SimpleDataSourcePool;
 
 import corpus.FinanceNewsOrNonCorpus;
-import corpus.ICorpus;
-import dataoperation.DataSource;
-import dataoperation.DataSourceDTF;
-import dataoperation.SimpleDataSourcePool;
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
@@ -39,10 +40,10 @@ public class CatgoryDiscriminating implements WeightingMethod {
 		this.result = new ObjectToDoubleMap<String>();
 	}
 
-	public static CatgoryDiscriminating build(ICorpus corpus) {
+	public static CatgoryDiscriminating build(ICorpus corpus,TokenizerFactory factory) {
 		DataSource dsdf = null;
 		try {
-			dsdf = SimpleDataSourcePool.create(corpus, DataSourceDTF.class);
+			dsdf = SimpleDataSourcePool.create(corpus, DataSourceDTF.class,factory);
 		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
 				| IOException e) {
 			System.err.println("Build ChiSquare instance fail: " + e.getMessage());
@@ -58,10 +59,10 @@ public class CatgoryDiscriminating implements WeightingMethod {
 	 *            类别区分词的最大后验概率与次大后延概率的差值，一般取0.3
 	 * @return
 	 */
-	public static CatgoryDiscriminating build(ICorpus corpus, Double threshold) {
+	public static CatgoryDiscriminating build(ICorpus corpus, Double threshold,TokenizerFactory factory) {
 		DataSource dsdf = null;
 		try {
-			dsdf = SimpleDataSourcePool.create(corpus, DataSourceDTF.class);
+			dsdf = SimpleDataSourcePool.create(corpus, DataSourceDTF.class, factory);
 		} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException
 				| IOException e) {
 			System.err.println("Build ChiSquare instance fail: " + e.getMessage());
