@@ -46,7 +46,12 @@ public class HanLPTokenizerFactory implements Serializable, TokenizerFactory {
 			parse = NLPTokenizer.segment(text);
 
 		}
-
+		public boolean hasNext() {
+			if (parse == null || currentPos >= parse.size() - 1)
+				return false;
+			return true;
+		}
+		
 		@Override
 		public String nextToken() {
 			if (parse == null || currentPos >= parse.size() - 1)

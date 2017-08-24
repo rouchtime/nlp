@@ -2,7 +2,10 @@ package com.rouchtime.nlp.featureSelection.source;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToDoubleMap;
@@ -19,12 +22,12 @@ public class DataSourceDF extends DataSource {
 	private ObjectToDoubleMap<String> labelDF;
 	private Table<String, String, Double> mLabelWordDf;
 	private TokenizerFactory mfactory;
-	private ICorpus mCorpus;
+	private List<Pair<String,String>> mCorpus;
 	private DataSourceDF() throws IOException {
 		
 	}
 	@Override
-	protected boolean resetImpl(ICorpus corpus,TokenizerFactory factory) {
+	protected boolean resetImpl(List<Pair<String,String>> corpus,TokenizerFactory factory) {
 		mCorpus = corpus;
 		mfactory = factory;
 		wordDF = new ObjectToDoubleMap<String>();
@@ -35,17 +38,17 @@ public class DataSourceDF extends DataSource {
 
 	@Override
 	public boolean load() throws IOException {
-		for(String label : mCorpus.labels()) {
-			for(String fileid : mCorpus.fileidFromLabel(label)) {
-				labelDF.increment(label, 1);
-				Set<String> appearedWordIndoc = new HashSet<>();
-				for(Term term : mCorpus.wordFromfileids(fileid, mfactory)) {
-					String word = term.getWord();
-					if (!appearedWordIndoc.contains(word)) {
-						wordDF.increment(word, 1);
-						addToMap(mLabelWordDf, label, word, 1);
-						appearedWordIndoc.add(word);
-					}
+		for(Pair<String,String> pair : mCorpus) {
+			String raw = pair.getLeft();
+			String label = pair.getRight();
+			labelDF.increment(label, 1);
+			Set<String> appearedWordIndoc = new HashSet<>();
+			for(String term : mfactory.tokenizer(raw.toCharArray(), 0, raw.length())) {
+				String word = term.split("/")[0];
+				if (!appearedWordIndoc.contains(word)) {
+					wordDF.increment(word, 1);
+					addToMap(mLabelWordDf, label, word, 1);
+					appearedWordIndoc.add(word);
 				}
 			}
 		}

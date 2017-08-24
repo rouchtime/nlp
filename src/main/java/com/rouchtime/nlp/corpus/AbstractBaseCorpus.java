@@ -159,7 +159,7 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 	}
 	
 	
-	public Map<String,List<String>> produceTrainAndTestByRate(double rate) {
+	public Map<String,List<String>> produceTrainAndTestByRate(double rate,Long seed) {
 		List<String> trainFileids = new ArrayList<String>();
 		List<String> testFileids = new ArrayList<String>();
 		for(String label : labels()) {
@@ -168,7 +168,7 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 			int totalSize = fileids.size();
 			int trainSize = (int) (totalSize * rate);
 			for (int i = 0; i < trainSize; i++) {
-				Random r = new Random(System.currentTimeMillis());
+				Random r = new Random(seed);
 				int rIndex = r.nextInt(totalSize);
 				trainFileids.add(list.get(rIndex));
 				list.remove(rIndex);

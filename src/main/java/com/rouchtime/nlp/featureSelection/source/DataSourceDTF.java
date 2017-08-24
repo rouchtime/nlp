@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
@@ -26,13 +28,14 @@ public class DataSourceDTF extends DataSource {
 	private ObjectToDoubleMap<String> labelWordCount;
 	private ObjectToDoubleMap<String> wordDF;
 	private TokenizerFactory mfactory;
-	private ICorpus mCorpus;
+	private List<Pair<String, String>> mCorpus;
+
 	public DataSourceDTF() throws IOException {
 		super();
 	}
 
 	@Override
-	protected boolean resetImpl(ICorpus corpus,TokenizerFactory factory) throws IOException {
+	protected boolean resetImpl(List<Pair<String, String>> corpus, TokenizerFactory factory) throws IOException {
 		mCorpus = corpus;
 		mfactory = factory;
 		docToLabel = new HashMap<String, String>();
@@ -45,19 +48,19 @@ public class DataSourceDTF extends DataSource {
 
 	@Override
 	public boolean load() throws IOException {
-		for(String label:mCorpus.labels()) {
+		for (Pair<String, String> pair : mCorpus) {
+			String raw = pair.getLeft();
+			String label = pair.getRight();
 			labelCounter.increment(label, 1);
-			for(String fileid : mCorpus.fileidFromLabel(label)) {
-				Set<String> appearedWordIndoc = new HashSet<>();
-				for(Term term : mCorpus.wordFromfileids(fileid, mfactory)) {
-					String word = term.getWord();
-					if (appearedWordIndoc.contains(word)) {
-						wordDF.increment(word, 1);
-						appearedWordIndoc.add(word);
-					}
-					addToMap(label_word_tf, label, word, 1.0);
-					labelWordCount.increment(label, 1.0);
+			Set<String> appearedWordIndoc = new HashSet<>();
+			for (String term : mfactory.tokenizer(raw.toCharArray(), 0, raw.length())) {
+				String word = term.split("/")[0];
+				if (appearedWordIndoc.contains(word)) {
+					wordDF.increment(word, 1);
+					appearedWordIndoc.add(word);
 				}
+				addToMap(label_word_tf, label, word, 1.0);
+				labelWordCount.increment(label, 1.0);
 			}
 		}
 		return true;
@@ -94,7 +97,7 @@ public class DataSourceDTF extends DataSource {
 	@Override
 	public double getDocCn() {
 		double sum = 0.0;
-		for(String label : labelCounter.keySet()) {
+		for (String label : labelCounter.keySet()) {
 			sum += labelCounter.get(label).doubleValue();
 		}
 		return sum;

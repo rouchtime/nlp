@@ -3,14 +3,15 @@ package task;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Random;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
@@ -21,7 +22,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.aliasi.classify.ConfusionMatrix;
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.Pair;
 import com.rouchtime.ml.wekaExplore.WekaTextClassifyUtils;
 import com.rouchtime.nlp.common.Term;
@@ -32,7 +32,6 @@ import com.rouchtime.util.DuplicateUtils;
 import com.rouchtime.util.RegexUtils;
 import com.rouchtime.util.WekaUtils;
 
-import tokenizer.HanLPKeyWordTTokenizerFactory;
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
@@ -54,6 +53,7 @@ public class GuojiClear {
 	static StopWordTokenierFactory stopTokenizerFactory = new StopWordTokenierFactory(
 			HanLPTokenizerFactory.getIstance());
 	static Map<String, Pair> mapURL = new HashMap<String, Pair>();
+	static Map<String, String> classifyMap = new HashMap<String, String>();
 	static DuplicateUtils duplicateUtils = DuplicateUtils.getIstance(stopTokenizerFactory, 100000, true);
 
 	public static void supplimentArticle(String path) {
@@ -63,56 +63,66 @@ public class GuojiClear {
 			String line = reader.readLine();
 			while (line != null) {
 				String[] splits = line.split("\t+");
-				if(splits.length < 4) {
-					
+				if (splits.length < 4) {
+
 					log.error("length < 4:" + line);
 					line = reader.readLine();
 					continue;
 				}
 				StringBuilder sb = new StringBuilder();
-				for(int i=3;i<splits.length;i++) {
+				for (int i = 3; i < splits.length; i++) {
 					sb.append(splits[i]);
 				}
-				if(splits[0].equals("yule")) {
+				if (splits[0].equals("yule")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+							true);
 				}
-				if(splits[0].equals("tiyu")) {
+				if (splits[0].equals("tiyu")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+							true);
 				}
-				if(splits[0].equals("caijing")) {
+				if (splits[0].equals("caijing")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+							true);
 				}
-				if(splits[0].equals("keji")) {
+				if (splits[0].equals("keji")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//"+splits[0]+".txt"), outputLine,"utf-8",true);
+					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+							true);
 				}
 				line = reader.readLine();
 			}
 		} catch (Exception e) {
-			log.error(
-					ExceptionUtils.getRootCauseMessage(e));
+			log.error(ExceptionUtils.getRootCauseMessage(e));
 		}
 	}
 
 	public static void statics() throws IOException {
-//		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-//		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-//		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
-//		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
-//		TextStatistics ts = new TextStatistics(guojiCorpus, stopNatureTokenizerFactory);
-//		for(String word : ts.getWordDictionary()) {
-//			ObjectToDoubleMap<String> map = ts.getDocumentFrequencyByWordInEveryLabel(word);
-//			if(map.keySet().size() < 2) {
-//				String key = map.keysOrderedByValueList().get(0);
-//				if(map.get(key) > 5.0) {
-//					FileUtils.write(new File("D://corpus//word"), word + "\t\t\t" + map.toString()+ "\n","utf-8",true);
-//				}
-//			}
-//		}
-//		System.out.println();
+		// StopWordTokenierFactory stopWordFactory = new
+		// StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
+		// StopNatureTokenizerFactory stopNatureTokenizerFactory = new
+		// StopNatureTokenizerFactory(stopWordFactory);
+		// ApplicationContext applicationContext = new
+		// ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
+		// GuojiCorpus guojiCorpus = (GuojiCorpus)
+		// applicationContext.getBean(GuojiCorpus.class);
+		// TextStatistics ts = new TextStatistics(guojiCorpus,
+		// stopNatureTokenizerFactory);
+		// for(String word : ts.getWordDictionary()) {
+		// ObjectToDoubleMap<String> map =
+		// ts.getDocumentFrequencyByWordInEveryLabel(word);
+		// if(map.keySet().size() < 2) {
+		// String key = map.keysOrderedByValueList().get(0);
+		// if(map.get(key) > 5.0) {
+		// FileUtils.write(new File("D://corpus//word"), word + "\t\t\t" +
+		// map.toString()+ "\n","utf-8",true);
+		// }
+		// }
+		// }
+		// System.out.println();
 	}
 
 	public static void duplicate(String path) throws IOException {
@@ -473,60 +483,70 @@ public class GuojiClear {
 	}
 
 	public static void writeToWekaFile(String path) throws IOException {
+//		initClassConfig("/label_config.txt");
 		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
 		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		
+
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
 		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
 		List<String> fileids = guojiCorpus.fileids();
-		Set<String> stop_nature_set = new HashSet<String>();
-		stop_nature_set.add("nr");
-		stop_nature_set.add("nrj");
-		stop_nature_set.add("nrf");
-		stop_nature_set.add("nrf");
 		for (String fileid : fileids) {
-			String label = guojiCorpus.labelFromfileids(fileid);
-			if(label.equals("改革政策")) {
-				String raw = guojiCorpus.rawFromfileids(fileid);
-				StringBuilder sb = new StringBuilder();
-				for(int i=0;i<3;i++) {
-					sb.append(guojiCorpus.titleFromfileid(fileid)).append(",");
-				}
-				for(String keyword : HanLPKeyWordTTokenizerFactory.getIstance(10).tokenizer(raw.toCharArray(), 0, raw.length())) {
-					for(int i=0;i<3;i++) {
-						sb.append(keyword).append(",");
-					}
-				}
-				sb.append(raw);
-				String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(sb.toString()), stopNatureTokenizerFactory,
-						guojiCorpus.labelFromfileids(fileid),stop_nature_set);
-				if(wekaContent == null) {
-					continue;
-				}
-				FileUtils.write(new File(path), wekaContent + "\n", "utf-8", true);
-				continue;
-			}
-			
 			String raw = guojiCorpus.rawFromfileids(fileid);
 			StringBuilder sb = new StringBuilder();
-			for(int i=0;i<3;i++) {
-				sb.append(guojiCorpus.titleFromfileid(fileid)).append(",");
-			}
-			for(String keyword : HanLPKeyWordTTokenizerFactory.getIstance(10).tokenizer(raw.toCharArray(), 0, raw.length())) {
-				for(int i=0;i<3;i++) {
-					sb.append(keyword).append(",");
-				}
-			}
+			String title = guojiCorpus.titleFromfileid(fileid);
+//			if (title != null) {
+//				for (int i = 0; i < 3; i++) {
+//					sb.append(title).append(",");
+//				}
+//			}
+			// for(String keyword :
+			// HanLPKeyWordTTokenizerFactory.getIstance(10).tokenizer(raw.toCharArray(), 0,
+			// raw.length())) {
+			// for(int i=0;i<3;i++) {
+			// sb.append(keyword).append(",");
+			// }
+			// }
 			sb.append(raw);
-			String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(sb.toString()), stopNatureTokenizerFactory,
-					guojiCorpus.labelFromfileids(fileid));
-			if(wekaContent == null) {
+			String wekaContent = RegexUtils.cleanParaAndImgLabel(title + "\t\t\t" + sb.toString()) + "\t\t\t" + guojiCorpus.labelFromfileid(fileid);
+			if (wekaContent == null) {
 				continue;
 			}
 			FileUtils.write(new File(path), wekaContent + "\n", "utf-8", true);
 		}
+
 	}
-	
+
+	private static void initClassConfig(String configPath) {
+		InputStream is = GuojiClear.class.getResourceAsStream(configPath);
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(is, "utf-8"));
+			String s = null;
+			while ((s = br.readLine()) != null) {
+				String[] splits = s.split("\t");
+				if (splits.length != 3) {
+					throw new IndexOutOfBoundsException("config table error");
+				}
+				String third = splits[0];
+				String second = splits[1];
+				String first = splits[2];
+				classifyMap.put(third, second);
+
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println(ExceptionUtils.getRootCauseMessage(e));
+		} catch (IOException e) {
+			System.err.println(ExceptionUtils.getRootCauseMessage(e));
+		} finally {
+			try {
+				if (br != null)
+					br.close();
+			} catch (IOException e) {
+				System.err.println(ExceptionUtils.getRootCauseMessage(e));
+			}
+		}
+	}
+
 	public static void writeToWekaFromRaw(String raw, TokenizerFactory factory, String path, String Combinelabel,
 			String label) throws IOException {
 		String wekaContent = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanParaAndImgLabel(raw), factory,
@@ -664,21 +684,20 @@ public class GuojiClear {
 		Instances ins = Filter.useFilter(SmoteInstances, nonSparseToSparse);
 		return ins;
 	}
-	
-	
-	
-	
+
 	public static void main(String[] args) throws Exception {
-		writeToWekaFile("D://corpus//category//guoji//weka_new_2017-8-11_cat24_title_keyword_nonature.arff");
-//		supplimentArticle("D:\\corpus\\url0810\\url0810.txt");
-//		duplicate("D:\\corpus\\category\\guoji\\20170811_小类补充");
-		// duplicate( "D:\\corpus\\category\\guoji\\guoji170803\\guoji170803");
-		// combineAB("D://corpus//category//guoji//AB//train",
-		// "D://corpus//category//guoji//AB//test");
-		// SMOTETest();
-		// combineSmote();
-		// subCate("D://corpus//06");
-		// modelTrain();
-//		statics();
+//		writeToWekaFile("D://corpus//category//guoji//weka_new_2017-8-15_raw.arff");
+//		// supplimentArticle("D:\\corpus\\url0810\\url0810.txt");
+//		// duplicate("D:\\corpus\\category\\guoji\\20170811_小类补充");
+//		// duplicate( "D:\\corpus\\category\\guoji\\guoji170803\\guoji170803");
+//		// combineAB("D://corpus//category//guoji//AB//train",
+//		// "D://corpus//category//guoji//AB//test");
+//		// SMOTETest();
+//		// combineSmote();
+//		// subCate("D://corpus//06");
+//		// modelTrain();
+//		// statics();
+		Random r = new Random(2);
+		System.out.println(r.nextInt());
 	}
 }

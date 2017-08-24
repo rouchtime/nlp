@@ -24,5 +24,11 @@ public class FinanceNewsOrNonCorpus extends AbstractBaseCorpus<NlpFinanceNewsNon
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public String labelFromfileid(String fileid) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

@@ -1,38 +1,36 @@
 package tokenizer;
 
-import java.io.File;
 import java.io.Serializable;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
+import com.hankcs.hanlp.seg.common.Term;
+import com.hankcs.hanlp.tokenizer.NLPTokenizer;
 import com.huaban.analysis.jieba.JiebaSegmenter;
-import com.huaban.analysis.jieba.WordDictionary;
+import com.huaban.analysis.jieba.SegToken;
+import com.huaban.analysis.jieba.JiebaSegmenter.SegMode;
 
-public class JiebaTokenizerFactory implements Serializable, TokenizerFactory {
+import tokenizer.HanLPTokenizerFactory.HanLPTokenizer;
+	
+public class JiebaTokenizerFactory implements Serializable, TokenizerFactory{
 
-	private String modelPath;
-	private WordDictionary wordDictionary;
-	private JiebaTokenizerFactory() {
-//		String pPath = JiebaTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//		modelPath = new File(pPath).getParent() + "/conf/jieba.dict";
-		modelPath = getClass().getClassLoader().getResource("conf/jieba.dict").getPath();
-		wordDictionary = WordDictionary.getInstance();
-		wordDictionary.loadUserDict(new File(modelPath).toPath(), Charset.forName("UTF-8"));
-	}
-
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1492728104694780351L;
 	private static volatile JiebaTokenizerFactory instance;
+	private JiebaTokenizerFactory() {
+
+	}
 
 	@Override
 	public Tokenizer tokenizer(char[] ch, int start, int length) {
 		return new JiebaTokenizer(ch, start, length);
+	
 	}
-
+	
 	public static JiebaTokenizerFactory getIstance() {
 		if (instance == null) {
 			synchronized (JiebaTokenizerFactory.class) {
@@ -43,19 +41,17 @@ public class JiebaTokenizerFactory implements Serializable, TokenizerFactory {
 		}
 		return instance;
 	}
-
+	
 	class JiebaTokenizer extends Tokenizer {
 
-		private List<String> parse = new ArrayList<String>();
+		private List<SegToken> parse = new ArrayList<SegToken>();
 		private int currentPos = -1;
 
 		public JiebaTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
-			JiebaSegmenter segmenter = new JiebaSegmenter();
+			JiebaSegmenter Segmenter = new JiebaSegmenter();
+			parse = Segmenter.process(text, SegMode.SEARCH);
 
-			for (String word : segmenter.sentenceProcess(text)) {
-				parse.add(word + "/" + "jieba");
-			}
 		}
 
 		@Override
@@ -64,15 +60,25 @@ public class JiebaTokenizerFactory implements Serializable, TokenizerFactory {
 				return null;
 			else {
 				currentPos++;
-				return parse.get(currentPos);
+				SegToken term = parse.get(currentPos);
+				if(term.word.getTokenType().equals("")) {
+					return term.word.getToken() + "/jieba"; 
+				}
+				return term.word.getToken() + "/" + term.word.getTokenType(); 
 			}
 		}
 
 	}
+	
 
 	public static void main(String[] args) {
-		String text = "本文是这个系列的第三篇文章，介绍了通过Builder模式应对参数过多的问题。如果你也希望参与类似的系列文章翻译，可以加入我们的Java开发 和 技术翻译 小组。";
-		for(String word : JiebaTokenizerFactory.getIstance().tokenizer(text.toCharArray(), 0, text.length())) {
+		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(JiebaTokenizerFactory.getIstance());
+		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
+		String text = "最近两个月，全球市场两大主要农作物小麦、大米价格纷纷上涨。北京";
+		for(String word : stopNatureTokenizerFactory.tokenizer(text.toCharArray(), 0, text.length())) {
+			if(word.split("/").length < 2) {
+				continue;
+			}
 			System.out.println(word);
 		}
 	}

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.ScoredObject;
@@ -23,10 +25,10 @@ import com.rouchtime.nlp.featureSelection.source.SimpleDataSourcePool;
 
 public class DocumentFrequencyFeatureSelector {
 
-	private ICorpus mCorpus;
+	private List<Pair<String,String>> mCorpus;
 	private TokenizerFactory mFactory;
 
-	public DocumentFrequencyFeatureSelector(ICorpus corpus, TokenizerFactory factory) {
+	public DocumentFrequencyFeatureSelector(List<Pair<String,String>> corpus, TokenizerFactory factory) {
 		mCorpus = corpus;
 		mFactory = factory;
 	}
@@ -129,36 +131,20 @@ public class DocumentFrequencyFeatureSelector {
 		return result;
 	}
 
-	public Map<String, Double> getDocumentFrequency(int topN) {
+	public List<ScoredObject<String>> getDocumentFrequency(int topN) {
 		DataSource dsdf = initDataSource();
 		ObjectToDoubleMap<String> table = ((DataSourceDF) dsdf).getWordDF();
 		List<ScoredObject<String>> list = table.scoredObjectsOrderedByValueList();
-		Map<String, Double> result = new LinkedHashMap<String, Double>();
-		int topCount = 0;
-		for (ScoredObject<String> entry : list) {
-			if (topCount == topN) {
-				break;
-			}
-			result.put(entry.getObject(), entry.score());
-			topCount++;
-		}
-		return result;
+		return list.subList(0, topN);
 	}
 
-	public Map<String, Double> getDocumentFrequency(int startIndex, int endIndex) {
+	
+	
+	public List<ScoredObject<String>> getDocumentFrequency(int startIndex, int endIndex) {
 		DataSource dsdf = initDataSource();
 		ObjectToDoubleMap<String> table = ((DataSourceDF) dsdf).getWordDF();
 		List<ScoredObject<String>> list = table.scoredObjectsOrderedByValueList();
-		Map<String, Double> result = new LinkedHashMap<String, Double>();
-		int topCount = 0;
-		for (ScoredObject<String> entry : list) {
-			if (topCount <= startIndex || topCount >= endIndex) {
-				continue;
-			}
-			result.put(entry.getObject(), entry.score());
-			topCount++;
-		}
-		return result;
+		return list.subList(startIndex, endIndex);
 	}
 
 	public Map<String, Double> getDocumentFrequency(double max, double min) {

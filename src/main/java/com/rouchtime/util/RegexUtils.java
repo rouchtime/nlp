@@ -79,7 +79,7 @@ public class RegexUtils {
 	}
 
 	public static String cleanSpecialWord(String text) {
-		String regex = "\\s+|　+|&nbsp+|#+| +|[\\u0000]+|(?:\\r)+|(?:\\n)+";
+		String regex = "\\s+|　+|&nbsp+|#+| +|[\\u0000]+|(?:\\r)+|(?:\\n)+|[\\u2003]+|;+";
 		return text.replaceAll(regex, "");
 	}
 	

@@ -2,8 +2,10 @@ package com.rouchtime.nlp.featureSelection.selector;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -21,20 +23,28 @@ import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
 public class ChiFeatureSelector {
-	private ICorpus mCorpus;
+	private List<Pair<String, String>> mCorpus;
 	private TokenizerFactory mFactory;
+	private ObjectToDoubleMap<String> result;
 
-	public ChiFeatureSelector(ICorpus corpus, TokenizerFactory factory) {
+	public ChiFeatureSelector(List<Pair<String, String>> corpus, TokenizerFactory factory) {
 		mCorpus = corpus;
 		mFactory = factory;
 	}
 
-	public List<ScoredObject<String>> getCHI(double threshold) {
+	public List<ScoredObject<String>> getCHI(int remainCount) {
+		if (result != null) {
+			return result.scoredObjectsOrderedByValueList().subList(0, remainCount);
+		} else {
+			return getCHI().subList(0, remainCount);
+		}
+	}
+
+	private List<ScoredObject<String>> getCHI() {
 		DataSourceDF dsdf = (DataSourceDF) initDataSource(DataSourceDF.class);
 		double N = dsdf.getDocCn();
-		ObjectToDoubleMap<String> result = new ObjectToDoubleMap<String>();
+		result = new ObjectToDoubleMap<String>();
 		for (String word : dsdf.getDictionary()) {
-
 			double chi_max = 0.0;
 			for (String label : dsdf.getLabels()) {
 				double A = dsdf.getWordDF(label, word);
@@ -62,13 +72,7 @@ public class ChiFeatureSelector {
 		}
 		return dsdf;
 	}
+
 	public static void main(String[] args) {
-		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
-		GuojiCorpus guojiCorpus = (GuojiCorpus) applicationContext.getBean(GuojiCorpus.class);
-		ChiFeatureSelector igFeatureSelector = new ChiFeatureSelector(guojiCorpus, stopNatureTokenizerFactory);
-		List<ScoredObject<String>>  list = igFeatureSelector.getCHI(0);
-		System.out.println(list);
 	}
 }
