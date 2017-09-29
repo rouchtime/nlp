@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.IOUtils;
 
 import com.aliasi.util.Pair;
+import com.rouchtime.nlp.common.Term;
 
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.NGramTokenizerBasedOtherTokenizerFactory;
@@ -463,121 +464,6 @@ public class RegexUtils {
 
 	/******************************** 评论相关正则 *******************************/
 
-	/**
-	 * 找到由特殊符号隔开的6位以上的既有数字也有字母字符串
-	 * 
-	 * @param raw
-	 * @return
-	 */
-	public static RegexBean findSequenceNumAndAhplaBySpliteWord(String raw) {
-		List<String> matches = new ArrayList<String>();
-		String regex = "(?:[a-zA-Z0-9一二三四五六七八九](?:[^一二三四五六七八九a-zA-Z0-9\\u4e00-\\u9fa5]+)){6,}";
-		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
-		Matcher m = pattern.matcher(raw);
-		int regexFlag = 0;
-		StringBuffer sb = new StringBuffer(raw);
-		int dis = 0;
-		while (m.find()) {
-			String capture = m.group();
-			if (capture != null) {
-				matches.add(capture);
-				int start = m.start() - dis;
-				int end = m.end() - dis;
-				sb.delete(start, end);
-				dis += end - start;
-				regexFlag++;
-			}
-		}
-		if (regexFlag != 0) {
-			return new RegexBean(true, raw, matches, sb.toString());
-		}
-		return new RegexBean(false, raw, matches, sb.toString());
-	}
-
-	/**
-	 * 找到中间没有间隔特殊字符的串
-	 * 
-	 * @param raw
-	 * @return
-	 */
-	public static RegexBean findSequenceNumAndAhplaByNoSpliteWord(String raw) {
-		List<String> matches = new ArrayList<String>();
-		String regex = "(?:[a-zA-Z0-9]){6,}";
-		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
-		Matcher m = pattern.matcher(raw);
-		int regexFlag = 0;
-		StringBuffer sb = new StringBuffer(raw);
-		int dis = 0;
-		while (m.find()) {
-			String capture = m.group();
-			if (capture != null) {
-				matches.add(capture);
-				int start = m.start() - dis;
-				int end = m.end() - dis;
-				sb.delete(start, end);
-				dis += end - start;
-				regexFlag++;
-			}
-		}
-		if (regexFlag != 0) {
-			return new RegexBean(true, raw, matches, sb.toString());
-		}
-		return new RegexBean(false, raw, matches, sb.toString());
-	}
-
-	public static RegexBean findSequenceNumAndAhpla(String raw) {
-		List<String> matches = new ArrayList<String>();
-		String regex = "(?:[a-zA-Z0-9一二三四五六七八九](?:[^一二三四五六七八九a-zA-Z0-9\\u4e00-\\u9fa5]*)){6,}";
-		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
-		Matcher m = pattern.matcher(raw);
-		int regexFlag = 0;
-		StringBuffer sb = new StringBuffer(raw);
-		int dis = 0;
-		while (m.find()) {
-			String capture = m.group();
-			if (capture != null) {
-				matches.add(capture);
-				int start = m.start() - dis;
-				int end = m.end() - dis;
-				sb.delete(start, end);
-				dis += end - start;
-				regexFlag++;
-			}
-		}
-		if (regexFlag != 0) {
-			return new RegexBean(true, raw, matches, sb.toString());
-		}
-		return new RegexBean(false, raw, matches, sb.toString());
-	}
-
-	public static String replaceSpecialNumberToNormal(String raw, Map<String, String> configMap) {
-		String regex = "[㈠㈡㈢㈣㈤㈥㈦㈧㈨ⅠⅡⅢⅣⅤⅥⅦⅧⅨ①②③④⑤⑥⑥⑦⑧⑨⒈⒉⒊⒋⒌⒍⒎⒏⒐⑴⑵⑶⑷⑸⑹⑺⑻⑼零一二三四五六七八九 壹贰叁肆伍陆柒捌玖拾]{6,}";
-		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
-		Matcher m = pattern.matcher(raw);
-		int regexFlag = 0;
-		StringBuffer sb = new StringBuffer(raw);
-		while (m.find()) {
-			String capture = m.group();
-			StringBuffer subSb = new StringBuffer();
-			if (capture != null) {
-				for (int i = 0; i < capture.length(); i++) {
-					String key = capture.substring(i, i + 1);
-					String value = configMap.get(key);
-					if (value == null) {
-						continue;
-					}
-					subSb.append(value);
-				}
-				if (subSb.toString().equals("")) {
-					continue;
-				}
-				sb.replace(m.start(), m.end(), subSb.toString());
-				regexFlag++;
-			}
-		}
-		return sb.toString();
-	}
-
 	public static String findSpecialNumberSignal(String raw) {
 		String regex = "[❶❷❸❹❺❻❼❽❾㈠㈡㈢㈣㈤㈥㈦㈧㈨ⅠⅡⅢⅣⅤⅥⅦⅧⅨ①②③④⑤⑥⑥⑦⑧⑨⒈⒉⒊⒋⒌⒍⒎⒏⒐⑴⑵⑶⑷⑸⑹⑺⑻⑼零一二三四五六七八九 壹贰叁肆伍陆柒捌玖拾]{6,}";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
@@ -591,10 +477,22 @@ public class RegexUtils {
 		return null;
 	}
 
+	/**
+	 * 移除除了字母和数字的数
+	 * 
+	 * @param match
+	 * @return
+	 */
 	public static String removeNonNumAndAlpha(String match) {
-		return match.replaceAll("[^a-zA-Z0-9]", "");
+		return match.replaceAll("[^a-zA-Z0-9\\u4e00-\\u9fa5]", "");
 	}
 
+	/**
+	 * 找到电话号码
+	 * 
+	 * @param raw
+	 * @return
+	 */
 	public static String findCellPhoneNum(String raw) {
 		String regex = "(?:0|86|17951)?(?:(?:13[0-9])|(?:14[5|7])|(?:15(?:[0-3]|[5-9]))|(?:18[0,5-9]))\\d{8}";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
@@ -608,7 +506,16 @@ public class RegexUtils {
 		return null;
 	}
 
+	/**
+	 * 找到qq号码
+	 * 
+	 * @param raw
+	 * @return
+	 */
 	public static String findQQNum(String raw) {
+		if (raw.length() > 10) {
+			return null;
+		}
 		String regex = "[1-9][0-9]{4,9}";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
 		Matcher m = pattern.matcher(raw);
@@ -621,6 +528,41 @@ public class RegexUtils {
 		return null;
 	}
 
+	public static String findWeiXin(String raw) {
+		if (raw.length() > 20 || raw.length() < 6) {
+			return null;
+		}
+		String regex = "(?:[a-zA-Z0-9]){6,}";
+		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
+		Matcher m = pattern.matcher(raw);
+		while (m.find()) {
+			String capture = m.group();
+			if (capture != null) {
+				return capture;
+			}
+		}
+		return null;
+	}
+
+	public static String findRMBPrice(String raw) {
+		String regex = "(?:\\d*)(?:\\s*)元";
+		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
+		Matcher m = pattern.matcher(raw);
+		while (m.find()) {
+			String capture = m.group();
+			if (capture != null) {
+				return capture;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 是否存在数字
+	 * 
+	 * @param raw
+	 * @return
+	 */
 	public static Boolean isNumber(String raw) {
 		String regex = "[0-9]+";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
@@ -628,6 +570,12 @@ public class RegexUtils {
 		return m.find(0);
 	}
 
+	/**
+	 * 是否存在字母
+	 * 
+	 * @param raw
+	 * @return
+	 */
 	public static Boolean isAlphabet(String raw) {
 		String regex = "[a-zA-Z]+";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
@@ -651,4 +599,5 @@ public class RegexUtils {
 		// System.out.println(judgeFormat("【理臣】2017年经济法-葛江静-第七章第6-8节b",
 		// "【理臣】2017年经济法-葛江静-第五章第9节h"));
 	}
+
 }
