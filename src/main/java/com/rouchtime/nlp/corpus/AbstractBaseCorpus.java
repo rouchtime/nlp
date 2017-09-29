@@ -54,6 +54,11 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 	}
 
 	@Override
+	public Set<String> labelsFromFirstlabel(String firstLabel) {
+		return null;
+	}
+	
+	@Override
 	public String labelFromTitles(String title) {
 		Example example = new Example(getSuperClassGenricType(this.getClass(), 0));
 		example.createCriteria().andCondition("title=", title);
@@ -163,6 +168,31 @@ public abstract class AbstractBaseCorpus<T extends AbstractRaw> implements ICorp
 		List<String> trainFileids = new ArrayList<String>();
 		List<String> testFileids = new ArrayList<String>();
 		for(String label : labels()) {
+			List<String> fileids = fileidFromLabel(label);
+			LinkedList<String> list = new LinkedList<String>(fileids);
+			int totalSize = fileids.size();
+			int trainSize = (int) (totalSize * rate);
+			for (int i = 0; i < trainSize; i++) {
+				Random r = new Random(seed);
+				int rIndex = r.nextInt(totalSize);
+				trainFileids.add(list.get(rIndex));
+				list.remove(rIndex);
+				totalSize--;
+			}
+			for(String fileid : list) {
+				testFileids.add(fileid);
+			}
+		}
+		Map<String,List<String>> mapTrainAndTest = new HashMap<String,List<String>>();
+		mapTrainAndTest.put("train", trainFileids);
+		mapTrainAndTest.put("test", testFileids);
+		return mapTrainAndTest;
+	}
+	
+	public Map<String,List<String>> produceTrainAndTestByRateByLabel(double rate,Long seed,String firstlabel) {
+		List<String> trainFileids = new ArrayList<String>();
+		List<String> testFileids = new ArrayList<String>();
+		for(String label : labelsFromFirstlabel(firstlabel)) {
 			List<String> fileids = fileidFromLabel(label);
 			LinkedList<String> list = new LinkedList<String>(fileids);
 			int totalSize = fileids.size();

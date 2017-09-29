@@ -30,15 +30,15 @@ public class WekaUtils {
 		StringBuffer sb = new StringBuffer();
 		sb.append("'");
 		for (String term : factory.tokenizer(raw.toCharArray(), 0, raw.length())) {
-			String word="";
-			if(term.split("/").length == 1) {
+			String word = "";
+			if (term.split("/").length == 1) {
 				word = term;
-			}else {
+			} else {
 				word = term.split("/")[0];
 			}
 			sb.append(word.replaceAll("'", "")).append(" ");
 		}
-		if(sb.toString().equals("'")){
+		if (sb.toString().equals("'")) {
 			return null;
 		}
 		sb.delete(sb.length() - 1, sb.length());

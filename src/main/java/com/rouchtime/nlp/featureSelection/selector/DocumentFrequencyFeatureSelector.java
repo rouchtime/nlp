@@ -19,16 +19,17 @@ import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.ScoredObject;
 import com.google.common.collect.Table;
 import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 import com.rouchtime.nlp.featureSelection.source.DataSource;
 import com.rouchtime.nlp.featureSelection.source.DataSourceDF;
 import com.rouchtime.nlp.featureSelection.source.SimpleDataSourcePool;
 
 public class DocumentFrequencyFeatureSelector {
 
-	private List<Pair<String,String>> mCorpus;
+	private List<FeatureSelectionBean> mCorpus;
 	private TokenizerFactory mFactory;
 
-	public DocumentFrequencyFeatureSelector(List<Pair<String,String>> corpus, TokenizerFactory factory) {
+	public DocumentFrequencyFeatureSelector(List<FeatureSelectionBean> corpus, TokenizerFactory factory) {
 		mCorpus = corpus;
 		mFactory = factory;
 	}

@@ -19,6 +19,7 @@ import com.google.common.collect.Table;
 import com.rouchtime.nlp.common.News;
 import com.rouchtime.nlp.common.Term;
 import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 
 public class DataSourceDTF extends DataSource {
 
@@ -28,14 +29,14 @@ public class DataSourceDTF extends DataSource {
 	private ObjectToDoubleMap<String> labelWordCount;
 	private ObjectToDoubleMap<String> wordDF;
 	private TokenizerFactory mfactory;
-	private List<Pair<String, String>> mCorpus;
+	private List<FeatureSelectionBean> mCorpus;
 
 	public DataSourceDTF() throws IOException {
 		super();
 	}
 
 	@Override
-	protected boolean resetImpl(List<Pair<String, String>> corpus, TokenizerFactory factory) throws IOException {
+	protected boolean resetImpl(List<FeatureSelectionBean> corpus, TokenizerFactory factory) throws IOException {
 		mCorpus = corpus;
 		mfactory = factory;
 		docToLabel = new HashMap<String, String>();
@@ -48,9 +49,9 @@ public class DataSourceDTF extends DataSource {
 
 	@Override
 	public boolean load() throws IOException {
-		for (Pair<String, String> pair : mCorpus) {
-			String raw = pair.getLeft();
-			String label = pair.getRight();
+		for (FeatureSelectionBean pair : mCorpus) {
+			String raw = pair.getRaw();
+			String label = pair.getLabel();
 			labelCounter.increment(label, 1);
 			Set<String> appearedWordIndoc = new HashSet<>();
 			for (String term : mfactory.tokenizer(raw.toCharArray(), 0, raw.length())) {

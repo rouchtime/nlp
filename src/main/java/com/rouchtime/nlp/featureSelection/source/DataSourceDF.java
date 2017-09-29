@@ -13,6 +13,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.rouchtime.nlp.common.Term;
 import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 
 /**
  * Created by py on 16-9-21.
@@ -22,12 +23,12 @@ public class DataSourceDF extends DataSource {
 	private ObjectToDoubleMap<String> labelDF;
 	private Table<String, String, Double> mLabelWordDf;
 	private TokenizerFactory mfactory;
-	private List<Pair<String,String>> mCorpus;
+	private List<FeatureSelectionBean> mCorpus;
 	private DataSourceDF() throws IOException {
 		
 	}
 	@Override
-	protected boolean resetImpl(List<Pair<String,String>> corpus,TokenizerFactory factory) {
+	protected boolean resetImpl(List<FeatureSelectionBean> corpus,TokenizerFactory factory) {
 		mCorpus = corpus;
 		mfactory = factory;
 		wordDF = new ObjectToDoubleMap<String>();
@@ -38,9 +39,9 @@ public class DataSourceDF extends DataSource {
 
 	@Override
 	public boolean load() throws IOException {
-		for(Pair<String,String> pair : mCorpus) {
-			String raw = pair.getLeft();
-			String label = pair.getRight();
+		for(FeatureSelectionBean pair : mCorpus) {
+			String raw = pair.getRaw();
+			String label = pair.getLabel();
 			labelDF.increment(label, 1);
 			Set<String> appearedWordIndoc = new HashSet<>();
 			for(String term : mfactory.tokenizer(raw.toCharArray(), 0, raw.length())) {

@@ -328,11 +328,16 @@ public class DuplicateUtils {
 		Set<Integer> vector = new TreeSet<Integer>();
 		String content = duplicateBean.getRaw();
 		for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
-			String[] term = token.split(Contants.SLASH);
-			if (term.length != 2) {
-				continue;
+			String word = "";
+			if (token.indexOf(Contants.SLASH) != -1) {
+				String[] term = token.split(Contants.SLASH);
+				if (term.length != 2) {
+					continue;
+				}
+				word = term[0];
+			} else {
+				word = token;
 			}
-			String word = term[0];
 			vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 		}
 		return vector;

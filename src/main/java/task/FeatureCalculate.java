@@ -27,24 +27,5 @@ import tokenizer.StopWordTokenierFactory;
 
 public class FeatureCalculate {
 	public static void main(String[] args) throws IOException {
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
-		SougouCateCorpus guojiCorpus = (SougouCateCorpus) applicationContext.getBean(SougouCateCorpus.class);
-		List<Pair<String, String>> ListPair = new ArrayList<Pair<String, String>>();
-		for (String fileid : guojiCorpus.fileids()) {
-			ImmutablePair<String, String> pair = new ImmutablePair<String, String>(RegexUtils.cleanSpecialWord(guojiCorpus.rawFromfileids(fileid)),
-					guojiCorpus.labelFromfileid(fileid));
-			ListPair.add(pair);
-		}
-		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
-		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-//		NGramTokenizerBasedOtherTokenizerFactory factory = new NGramTokenizerBasedOtherTokenizerFactory(stopNatureTokenizerFactory, 1, 2);
-		DocumentFrequencyFeatureSelector dfSelector = new DocumentFrequencyFeatureSelector(ListPair,
-				stopNatureTokenizerFactory);
-//		CategoryDiscriminatingFeatureSelector cdhFeatureSelector = new CategoryDiscriminatingFeatureSelector(ListPair, factory);
-		List<ScoredObject<String>> list = dfSelector.getDocumentFrequency(0,10000);
-		for(ScoredObject<String> scoreObject : list) {
-			FileUtils.write(new File("D://df"), scoreObject.getObject() + "\t" + scoreObject.score()+"\n","utf-8",true);
-		}
-		
 	}
 }

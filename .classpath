@@ -34,5 +34,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="D:/workspace/eastheadline/nlp/lib/zc_gx_j_test.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

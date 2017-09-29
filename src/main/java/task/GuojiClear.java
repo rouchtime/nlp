@@ -23,6 +23,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import com.aliasi.classify.ConfusionMatrix;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.Pair;
+import com.alibaba.fastjson.JSONObject;
 import com.rouchtime.ml.wekaExplore.WekaTextClassifyUtils;
 import com.rouchtime.nlp.common.Term;
 import com.rouchtime.nlp.corpus.GuojiCorpus;
@@ -73,22 +74,22 @@ public class GuojiClear {
 				for (int i = 3; i < splits.length; i++) {
 					sb.append(splits[i]);
 				}
-				if (splits[0].equals("yule")) {
+//				if (splits[0].equals("yule")) {
+//					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+//					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+//							true);
+//				}
+//				if (splits[0].equals("tiyu")) {
+//					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
+//					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
+//							true);
+//				}
+				if (splits[0].equals("junshi")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
 					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
 							true);
 				}
-				if (splits[0].equals("tiyu")) {
-					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
-							true);
-				}
-				if (splits[0].equals("caijing")) {
-					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
-					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
-							true);
-				}
-				if (splits[0].equals("keji")) {
+				if (splits[0].equals("guoji")) {
 					String outputLine = splits[1] + "\t\t\t" + splits[2] + "\t\t\t" + sb.toString() + "\n";
 					FileUtils.write(new File("D://corpus//category//guoji//" + splits[0] + ".txt"), outputLine, "utf-8",
 							true);
@@ -312,14 +313,14 @@ public class GuojiClear {
 		for (String key : trainAndTest.keySet()) {
 			if (key.equals("train")) {
 				for (String fileid : trainAndTest.get(key)) {
-					String label = guojiCorpus.labelFromfileids(fileid);
+					String label = guojiCorpus.labelFromfileid(fileid);
 					String raw = guojiCorpus.rawFromfileids(fileid);
 					combineRaw(raw, label, stopNatureTokenizerFactory, trainPath);
 					writeToWekaFromRaw(raw, stopNatureTokenizerFactory, trainPath + "unCombine", label, label);
 				}
 			} else {
 				for (String fileid : trainAndTest.get(key)) {
-					String label = guojiCorpus.labelFromfileids(fileid);
+					String label = guojiCorpus.labelFromfileid(fileid);
 					String raw = guojiCorpus.rawFromfileids(fileid);
 					writeToWekaFromRaw(raw, stopNatureTokenizerFactory, testPath, label, label);
 				}
@@ -685,9 +686,26 @@ public class GuojiClear {
 		return ins;
 	}
 
+	public static void combine() throws IOException {
+		File[] files = new File("D:\\corpus\\category\\guoji\\online_output").listFiles();
+		for(File file : files) {
+			List<String> lines = FileUtils.readLines(file);
+			for(String line : lines) {
+				String[] splits = line.split("\t");
+				StringBuffer sb = new StringBuffer();
+				String class2 = splits[0];
+				String title = splits[1];
+				String url = splits[2];
+				String class3 = JSONObject.parseObject(splits[3]).getString("tplv003");
+				sb.append(class2).append("\t").append(class3).append("\t").append(title).append("\t").append(url).append("\n");
+				FileUtils.write(new File("D://guoji025.txt"), sb.toString(),"utf-8",true);
+			}
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 //		writeToWekaFile("D://corpus//category//guoji//weka_new_2017-8-15_raw.arff");
-//		// supplimentArticle("D:\\corpus\\url0810\\url0810.txt");
+		 supplimentArticle("D:\\corpus\\category\\url0810\\url0810.txt");
 //		// duplicate("D:\\corpus\\category\\guoji\\20170811_小类补充");
 //		// duplicate( "D:\\corpus\\category\\guoji\\guoji170803\\guoji170803");
 //		// combineAB("D://corpus//category//guoji//AB//train",
@@ -697,7 +715,8 @@ public class GuojiClear {
 //		// subCate("D://corpus//06");
 //		// modelTrain();
 //		// statics();
-		Random r = new Random(2);
-		System.out.println(r.nextInt());
+//		Random r = new Random(2);
+//		System.out.println(r.nextInt());
+//		combine();
 	}
 }

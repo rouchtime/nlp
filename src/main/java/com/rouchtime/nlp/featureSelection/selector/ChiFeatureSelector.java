@@ -14,6 +14,7 @@ import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.ScoredObject;
 import com.rouchtime.nlp.corpus.GuojiCorpus;
 import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 import com.rouchtime.nlp.featureSelection.source.DataSource;
 import com.rouchtime.nlp.featureSelection.source.DataSourceDF;
 import com.rouchtime.nlp.featureSelection.source.SimpleDataSourcePool;
@@ -23,11 +24,11 @@ import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
 public class ChiFeatureSelector {
-	private List<Pair<String, String>> mCorpus;
+	private List<FeatureSelectionBean> mCorpus;
 	private TokenizerFactory mFactory;
 	private ObjectToDoubleMap<String> result;
 
-	public ChiFeatureSelector(List<Pair<String, String>> corpus, TokenizerFactory factory) {
+	public ChiFeatureSelector(List<FeatureSelectionBean> corpus, TokenizerFactory factory) {
 		mCorpus = corpus;
 		mFactory = factory;
 	}
