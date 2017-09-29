@@ -1,36 +1,55 @@
 package com.rouchtime.nlp.comment;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-
 import com.aliasi.tokenizer.TokenizerFactory;
+import com.hankcs.hanlp.corpus.tag.Nature;
+import com.hankcs.hanlp.dictionary.CustomDictionary;
+import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 import com.rouchtime.nlp.common.Term;
+import com.rouchtime.util.Contants;
 import com.rouchtime.util.RegexUtils;
 
 import tokenizer.HanLPTokenizerFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
+/**
+ * 
+ * @author 龚帅宾
+ *
+ */
 public class CommentPreProcessor {
 
 	private Map<String, String> SPECIALNUMMAP;
+	private Set<String> FACEEXPRESSION;
 	private TokenizerFactory TOKENNIZERFACTORY;
 	private String regexSequenceNumBySplitWords = "(?:[a-zA-Z0-9一二三四五六七八九](?:[^一二三四五六七八九a-zA-Z0-9\\u4e00-\\u9fa5]+)){6,}";
 	private String regexSequenceNumByNoSpliteWord = "(?:[a-zA-Z0-9]){6,}";
 	private String regexSequenceNumAndAhpla = "(?:[a-zA-Z0-9一二三四五六七八九](?:[^一二三四五六七八九a-zA-Z0-9\\u4e00-\\u9fa5]*)){6,}";
 	private String regexRMBPrice = "(?:\\d*)(?:\\s*)元";
+	private String regexDate = "(?:[0-9]{4})[-/年](?:[0-1]?[0-9]{1})[-/月](?:[0-3]?[0-9]{1})[日]?|(?:[0-1]?[0-9]{1})[-/月](?:[0-3]?[0-9]{1})[日号]?|(?:[0-3]?[0-9]{1})[日号]";
 
 	private CommentPreProcessor() {
 		CommentDataLoad data = CommentDataLoad.getInstance();
+		FACEEXPRESSION = data.getFACEEXPRESSION();
 		SPECIALNUMMAP = data.getSPECIALNUMMAP();
 		TOKENNIZERFACTORY = getTokenFactory();
+		insertFaceExpression();
+	}
+
+	private void insertFaceExpression() {
+		Nature.create("表情符号");
+		for (String token : FACEEXPRESSION) {
+			CustomDictionary.insert(token.trim(), "表情符号 1024");
+		}
+		StandardTokenizer.SEGMENT.enablePartOfSpeechTagging(true);
 	}
 
 	public List<Term> getCommentListTerm(String raw) {
@@ -43,6 +62,19 @@ public class CommentPreProcessor {
 		raw = recognizeSequenceNumAndReturnRemain(regexSequenceNumByNoSpliteWord, raw, terms);
 		raw = recognizeSequenceNumAndReturnRemain(regexSequenceNumAndAhpla, raw, terms);
 		raw = recognizeSequenceNumAndReturnRemain(regexRMBPrice, raw, terms);
+		raw = recognizeSequenceNumAndReturnRemain(regexDate, raw, terms);
+		for (String token : TOKENNIZERFACTORY.tokenizer(raw.toCharArray(), 0, raw.length())) {
+			if (token.split(Contants.SLASH).length != 2) {
+				continue;
+			}
+			if (token.split(Contants.SLASH)[1].equals("表情符号")) {
+				Term term = new Term("表情符号标识符", "表情符号");
+				terms.add(term);
+				continue;
+			}
+			Term term = new Term(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
+			terms.add(term);
+		}
 		return terms;
 	}
 
@@ -57,7 +89,7 @@ public class CommentPreProcessor {
 	private TokenizerFactory getTokenFactory() {
 		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
 		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		return stopNatureTokenizerFactory;
+		return stopWordFactory;
 	}
 
 	/**
@@ -147,17 +179,24 @@ public class CommentPreProcessor {
 			symbol = "人民币价格";
 			return symbol;
 		}
+		if (RegexUtils.isExistsDateWord(match)) {
+			symbol = "日期时间标识符";
+			return symbol;
+		}
 		return null;
 	}
+
 	public static void main(String[] args) throws IOException {
 		CommentPreProcessor preProcessor = CommentPreProcessor.getInstance();
-		for(String line : FileUtils.readLines(new File("D:\\comment\\08_comment_article\\SPAM"),"utf-8")){
-			List<Term> terms = preProcessor.getCommentListTerm(line.split("\t")[0]);
-			FileUtils.write(new File("D:\\comment\\08_comment_article\\weixin"), terms + "\t" + line.split("\t")[0]+"\n","utf-8",true);
-		}
-//		String text = "西水股份就是在她的文章中看到的，老粉丝了，他的位號是 g  k  83 2 83，真正的好人是有好报的，分享给大家，共勉！";
-//		List<Term> terms = preProcessor.getCommentListTerm(text);
-//		System.out.println(terms);
-		
+		// for(String line : FileUtils.readLines(new
+		// File("D:\\comment\\08_comment_article\\SPAM"),"utf-8")){
+		// List<Term> terms = preProcessor.getCommentListTerm(line.split("\t")[0]);
+		// FileUtils.write(new File("D:\\comment\\08_comment_article\\weixin"), terms +
+		// "\t" + line.split("\t")[0]+"\n","utf-8",true);
+		// }
+		String text = "╮(╯▽╰)╭西水股份就是在她的文章中看到的，<。)#)))≤　(^人^),(^人^),(^人^)老粉丝了，他的位號是 g  k  83 2 83，真正的好人是有好报的，分享给大家，共勉！2017年7月8日";
+		List<Term> terms = preProcessor.getCommentListTerm(text);
+		System.out.println(terms);
+
 	}
 }
