@@ -52,19 +52,19 @@ public class Contants {
 	}
 
 	public static String JUNSHITHIRDLABEL(Object t) {
-		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {shezhongjunshi"
-				+ ",guojijunzheng" + ",guowaijunren" + ",junduijianshe" + ",guoneijunzheng" + ",zhongguojunren"
-				+ ",taihaijushi" + ",lengbingqijunshi" + ",guojijindaijunshi" + ",zhongguojindaijunshi"
-				+ ",zhongguoxiandaijunshi" + ",yierzhanshi" + ",junshijingsai" + ",shezhongjunyan" + ",guojijunyan"
-				+ ",xiandaizhanzheng" + ",zhanqushehui" + ",baolichongtu" + ",danbingzhuangbei" + ",lujunzhuangbei"
-				+ ",haijunzhuangbei" + ",hangkonghangtian" + ",daodan" + ",zhanlvewuqi" + ",dianzixinxizhuangbei"
-				+ ",jianduanjunbei" + ",wuqizonghe,junshiqita}\r\n" + "@data\r\n";
+		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {" + "shezhongjunshi,"
+				+ "guojijunzheng," + "guowaijunren," + "junduijianshe," + "guoneijunzheng," + "zhongguojunren,"
+				+ "taihaijushi," + "lengbingqijunshi," + "guojijindaijunshi," + "zhongguojindaijunshi,"
+				+ "zhongguoxiandaijunshi," + "yierzhanshi," + "junshijingsai," + "shezhongjunyan," + "guojijunyan,"
+				+ "xiandaizhanzheng," + "zhanqushehui," + "baolichongtu," + "danbingzhuangbei," + "lujunzhuangbei,"
+				+ "haijunzhuangbei," + "hangkonghangtian," + "daodan," + "zhangluewuqi," + "dianzixinxizhuangbei,"
+				+ "jianduanjunbei," + "wuqizonghe," + "junshiqita}\r\n" + "@data\r\n";
 	}
 
 	public static String JUNSHISECONDLABEL(Object t) {
 		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {guojijunshi,"
-				+ "guoneijusnhi," + "junshijiuwen," + "junshiyanxi," + "wuzhuangdongluan," + "wuqizhuangbei,"+"junshiqita}\r\n"
-				+ "@data\r\n";
+				+ "guoneijunshi," + "junshijiuwen," + "junshiyanxi," + "wuzhuangdongluan," + "wuqizhuangbei,"
+				+ "junshiqita}\r\n" + "@data\r\n";
 	}
 
 	public static String JUNSHICHINESELABEL(Object t) {

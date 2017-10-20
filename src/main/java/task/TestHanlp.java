@@ -2,6 +2,7 @@ package task;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -12,18 +13,27 @@ import com.hankcs.hanlp.dictionary.CustomDictionary;
 import com.hankcs.hanlp.seg.common.Term;
 import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 
+import task.lexrank.LexRankSummarizer;
+import task.lexrank.Sentence;
+import task.lexrank.Text;
 import tokenizer.HanLPKeyWordTTokenizerFactory;
 import tokenizer.HanLPTokenizerFactory;
 
 public class TestHanlp {
 	public static void main(String[] args) throws IOException {
-		Nature.create("表情符号");
-		for (String express : FileUtils.readLines(new File("D://face_expression.txt"), "utf-8")) {
-			CustomDictionary.insert(express.trim(), "表情符号 1024");
-		}
-		StandardTokenizer.SEGMENT.enablePartOfSpeechTagging(true); // 依然支持隐马词性标注
-		String text = "\\(0^◇^0)/苹果电脑可\\(0^◇^0)/以运行开源阿尔法狗代码吗，<。)#)))≤";
-		System.out.println(HanLP.segment(text));
+
+
+		
+		HanLP.extractSummary(document, size)
+		
+//		Nature.create("表情符号");
+//		for (String express : FileUtils.readLines(new File("D://face_expression.txt"), "utf-8")) {
+//			CustomDictionary.insert(express.trim(), "表情符号 1024");
+//		}
+//		StandardTokenizer.SEGMENT.enablePartOfSpeechTagging(true); // 依然支持隐马词性标注
+//		String text = "\\(0^◇^0)/苹果电脑可\\(0^◇^0)/以运行开源阿尔法狗代码吗，<。)#)))≤";
+//		System.out.println(HanLP.segment(text));
+//		HanLP.extractPhrase(text, 10);
 //		for (String token : HanLPTokenizerFactory.getIstance().tokenizer(text.toCharArray(), 0, text.length())) {
 //			System.out.println(token);
 //		}

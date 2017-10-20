@@ -1,7 +1,12 @@
 package task;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -12,25 +17,38 @@ import org.apache.commons.io.FileUtils;
 
 public class TestHello {
 	public static void main(String[] args) throws IOException {
-//		List<String> lines = FileUtils.readLines(new File("D:\\stopwords1.txt"), "utf-8");
-//		Set<String> set1 = new HashSet<String>();
-//		for (String line : lines) {
-//			set1.add(line.replaceAll("\\s+", line));
-//		}
-//
-//		List<String> lines2 = FileUtils.readLines(new File("D:\\stopwords.txt"), "utf-8");
-//		Set<String> set2 = new HashSet<String>();
-//		for (String line : lines2) {
-//			set2.add(line.trim());
-//		}
-//		set1.addAll(set2);
-//		for (String a : set1) {
-//			FileUtils.write(new File("D://stopwords3.txt"), a + "\n", "utf-8", true);
-//		}
-		op();
-		// System.out.println(new Character(' ').hashCode());
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		System.out.println(sdf.format(new Date(1505297944653l)));
+		FileInputStream fis = null;
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		try {
+			fis = new FileInputStream(new File("D:\\corpus\\category\\yule\\yule09\\yule09"));
+			isr = new InputStreamReader(fis, "UTF-8");
+			br = new BufferedReader(isr);
+			String line = "";
+			String[] arrs = null;
+			while ((line = br.readLine()) != null) {
+				try {
+
+					arrs = line.split("\t");
+					String raw = arrs[2];
+					System.out.println(raw);
+				} catch (Exception e) {
+					continue;
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			br.close();
+			isr.close();
+			fis.close();
+		} catch (FileNotFoundException e) {
+			br.close();
+			isr.close();
+			fis.close();
+		} catch (IOException e) {
+			br.close();
+			isr.close();
+			fis.close();
+		}
 	}
 
 	public static String stringToHexString(String s) {
