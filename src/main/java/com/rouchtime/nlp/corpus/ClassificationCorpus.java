@@ -53,7 +53,8 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return fileids;
 	}
-	public List<String> fileidFromThirLabelAndFirstLabel(String label,String first_label) {
+
+	public List<String> fileidFromThirLabelAndFirstLabel(String label, String first_label) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("first_label=", first_label).andCondition("third_label=", label);
 		List<NlpClassificationRaw> list = mapper.selectByExample(example);
@@ -63,8 +64,8 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return fileids;
 	}
-	
-	public List<String> fileidFromSecondLabelAndFirstLabel(String second_label,String first_label) {
+
+	public List<String> fileidFromSecondLabelAndFirstLabel(String second_label, String first_label) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("first_label=", first_label).andCondition("second_label=", second_label);
 		List<NlpClassificationRaw> list = mapper.selectByExample(example);
@@ -74,7 +75,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return fileids;
 	}
-	
+
 	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("news_key=", fileids);
@@ -113,7 +114,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return set;
 	}
-	
+
 	public List<String> thirdLabels() {
 		List<NlpClassificationRaw> list = nlpClassificationRawMapper.selectThirdLabels();
 		List<String> set = new ArrayList<String>();
@@ -122,7 +123,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return set;
 	}
-	
+
 	public List<String> fileidFromSecondLabel(String secondLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("second_label=", secondLabel);
@@ -133,7 +134,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return fileids;
 	}
-	
+
 	public Set<String> labelsFromFirstlabel(String firstLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("first_label=", firstLabel);
@@ -144,7 +145,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return labels;
 	}
-	
+
 	public Set<String> secondlabelsFromFirstlabel(String firstLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("first_label=", firstLabel);
@@ -155,7 +156,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return labels;
 	}
-	
+
 	public Set<String> thridlabelsFromFirstlabel(String firstLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("first_label=", firstLabel);
@@ -166,14 +167,36 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return labels;
 	}
-	
-	public Set<String> labelsFromSecondlabel(String secondLabel) {
+
+	public Set<String> thridlabelsFromFirstlabelAndSecondLabel(String firstLabel, String secondLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
-		example.createCriteria().andCondition("second_label=", secondLabel);
+		example.createCriteria().andCondition("first_label=", firstLabel).andCondition("second_label=", secondLabel);
+		List<NlpClassificationRaw> list = mapper.selectByExample(example);
+		Set<String> labels = new HashSet<String>();
+		for (NlpClassificationRaw nlpClassificationRaw : list) {
+			labels.add(nlpClassificationRaw.getThirdLabel());
+		}
+		return labels;
+	}
+
+	public Set<String> labelsFromSecondlabelAndFirstLabel(String secondLabel,String firstLabel) {
+		Example example = new Example(NlpClassificationRaw.class);
+		example.createCriteria().andCondition("second_label=", secondLabel).andCondition("first_label=", firstLabel);
 		List<NlpClassificationRaw> list = mapper.selectByExample(example);
 		Set<String> labels = new HashSet<String>();
 		for (NlpClassificationRaw nlpClassificationRaw : list) {
 			labels.add(nlpClassificationRaw.getLabel());
+		}
+		return labels;
+	}
+
+	public Set<String> thirdlabelsFromSecondlabel(String secondLabel,String firstLabel) {
+		Example example = new Example(NlpClassificationRaw.class);
+		example.createCriteria().andCondition("second_label=", secondLabel).andCondition("first_label=", firstLabel);
+		List<NlpClassificationRaw> list = mapper.selectByExample(example);
+		Set<String> labels = new HashSet<String>();
+		for (NlpClassificationRaw nlpClassificationRaw : list) {
+			labels.add(nlpClassificationRaw.getThirdLabel());
 		}
 		return labels;
 	}
@@ -188,7 +211,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return fileids;
 	}
-	
+
 	public String labelFromfileid(String fileid) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("news_key=", fileid);
@@ -208,7 +231,7 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		}
 		return list.get(0).getTitle();
 	}
-	
+
 	public String thirdLabelFromFileid(String fileid) {
 		Example example = new Example(NlpClassificationRaw.class);
 		example.createCriteria().andCondition("news_key=", fileid);
@@ -219,9 +242,9 @@ public class ClassificationCorpus extends AbstractBaseCorpus<NlpClassificationRa
 		return list.get(0).getThirdLabel();
 	}
 
-	public String secondLabelFromThirdLabel(String label,String firstLabel) {
+	public String secondLabelFromThirdLabel(String label, String firstLabel) {
 		Example example = new Example(NlpClassificationRaw.class);
-		example.createCriteria().andCondition("first_label=",firstLabel).andCondition("third_label=", label);
+		example.createCriteria().andCondition("first_label=", firstLabel).andCondition("third_label=", label);
 		List<NlpClassificationRaw> list = mapper.selectByExample(example);
 		if (null == list || 0 == list.size()) {
 			return null;

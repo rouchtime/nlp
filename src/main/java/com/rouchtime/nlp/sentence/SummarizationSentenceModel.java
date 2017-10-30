@@ -1,4 +1,4 @@
-package task.sentence;
+package com.rouchtime.nlp.sentence;
 
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -23,20 +23,15 @@ public class SummarizationSentenceModel extends ChineseHeuristicSentenceModel im
 	private static final long serialVersionUID = 1742750116346026764L;
 
 	public SummarizationSentenceModel() {
-		super(POSSIBLE_STOPS, IMPOSSIBLE_PENULTIMATES, IMPOSSIBLE_SENTENCE_STARTS, true, true);
+		super(POSSIBLE_STOPS,IMPOSSIBLE_PENULTIMATES, IMPOSSIBLE_SENTENCE_STARTS, true, true);
 	}
 
 	private static final Set<String> POSSIBLE_STOPS = new HashSet<String>();
 	static {
 		POSSIBLE_STOPS.add("。");
-		POSSIBLE_STOPS.add("；"); // abbrev + stop occurs
+		POSSIBLE_STOPS.add("；"); 
 		POSSIBLE_STOPS.add("！");
 		POSSIBLE_STOPS.add("？");
-	}
-	
-	private static final Set<String> POSSIBLE_STOPSNEXT = new HashSet<String>();
-	static {
-		POSSIBLE_STOPSNEXT.add("”");
 	}
 	
 	private static final Set<String> IMPOSSIBLE_PENULTIMATES = new HashSet<String>();
@@ -47,6 +42,9 @@ public class SummarizationSentenceModel extends ChineseHeuristicSentenceModel im
 	static {
 		IMPOSSIBLE_SENTENCE_STARTS.add("因此");
 		IMPOSSIBLE_SENTENCE_STARTS.add("所以");
+		IMPOSSIBLE_SENTENCE_STARTS.add("但是");
+		IMPOSSIBLE_SENTENCE_STARTS.add("但");
+		IMPOSSIBLE_SENTENCE_STARTS.add("而且");
 	}
 
 	public static final SummarizationSentenceModel INSTANCE = new SummarizationSentenceModel();

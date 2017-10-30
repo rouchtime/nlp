@@ -1,4 +1,4 @@
-package task.sentence;
+package com.rouchtime.nlp.sentence;
 
 import java.util.ArrayList;
 import java.util.Collection;

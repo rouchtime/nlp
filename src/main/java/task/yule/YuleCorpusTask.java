@@ -1,15 +1,10 @@
-package task.junshi;
+package task.yule;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +33,13 @@ import tokenizer.JiebaTokenizerFactory;
 import tokenizer.StopNatureTokenizerFactory;
 import tokenizer.StopWordTokenierFactory;
 
-public class JunShiCorpusTask {
+public class YuleCorpusTask {
 	private static ClassificationCorpus corpus;
-	private static String JunShiDir = "D:\\";
+	private static String YuleDir = "D:\\";
 	private static TokenizerFactory tokenFactory;
 	private static List<FeatureSelectionBean> trainlist = new ArrayList<FeatureSelectionBean>();
 	private static List<FeatureSelectionBean> testlist = new ArrayList<FeatureSelectionBean>();
-	private static String outpath = "D:\\corpus\\category\\weka\\junshi";
+	private static String outpath = "D:\\corpus\\category\\weka\\yulebagua";
 	static {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
 		corpus = (ClassificationCorpus) applicationContext.getBean(ClassificationCorpus.class);
@@ -53,11 +48,10 @@ public class JunShiCorpusTask {
 
 	public static void outputDir() throws IOException {
 		for (String secondlabel : corpus.secondlabelsFromFirstlabel("junshi")) {
-			for (String label : corpus.labelsFromSecondlabelAndFirstLabel(secondlabel, "junshi")) {
+			for (String label : corpus.labelsFromSecondlabelAndFirstLabel(secondlabel,"junshi")) {
 				for (String fileid : corpus.fileidFromLabel(label)) {
 					try {
-						FileUtils.write(
-								new File(JunShiDir, String.format("\\%s\\%s\\%s", "junshi", secondlabel, label)),
+						FileUtils.write(new File(YuleDir, String.format("\\%s\\%s\\%s", "junshi", secondlabel, label)),
 								String.format("%s/t\n", corpus.rawFromfileids(fileid)), "utf-8", true);
 					} catch (Exception e) {
 						System.out.println(fileid);
@@ -146,18 +140,6 @@ public class JunShiCorpusTask {
 		}
 	}
 
-	public static void xiuzheng() throws IOException {
-		List<String> lines = FileUtils.readLines(new File("D://导弹"));
-		for (String line : lines) {
-			String[] splits = line.split("\t");
-			if (splits[1].indexOf("核") != -1 || splits[1].indexOf("东风") != -1) {
-				FileUtils.write(new File("D://he"), line + "\n", "utf-8", true);
-			} else {
-				FileUtils.write(new File("D://dao"), line + "\n", "utf-8", true);
-			}
-		}
-	}
-
 	public static void df(int start, int end, int para) throws IOException {
 		DocumentFrequencyFeatureSelector dfSelector = new DocumentFrequencyFeatureSelector(trainlist, tokenFactory);
 
@@ -167,7 +149,7 @@ public class JunShiCorpusTask {
 			for (ScoredObject<String> score : list) {
 				dic.add(score.getObject());
 			}
-			FileUtils.write(new File(outpath + "//df//df_" + i + ".arff"), Contants.JUNSHITHIRDLABEL(i), "utf-8", true);
+			FileUtils.write(new File(outpath + "//df//df_" + i + ".arff"), Contants.YULEBAGUA(i), "utf-8", true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
 				String wekaText = WekaUtils.formWekaArffTextFromRawAndDic(RegexUtils.cleanSpecialWord(raw),
@@ -187,7 +169,7 @@ public class JunShiCorpusTask {
 			for (ScoredObject<String> score : list) {
 				dic.add(score.getObject());
 			}
-			FileUtils.write(new File(outpath + "//cdh//cdh_" + i + ".arff"), Contants.JUNSHITHIRDLABEL(i), "utf-8",
+			FileUtils.write(new File(outpath + "//cdh//cdh_" + i + ".arff"), Contants.YULEBAGUA(i), "utf-8",
 					true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
@@ -207,7 +189,7 @@ public class JunShiCorpusTask {
 			for (ScoredObject<String> score : list) {
 				dic.add(score.getObject());
 			}
-			FileUtils.write(new File(outpath + "//chi//chi_" + i + ".arff"), Contants.JUNSHITHIRDLABEL(i), "utf-8",
+			FileUtils.write(new File(outpath + "//chi//chi_" + i + ".arff"), Contants.YULEBAGUA(i), "utf-8",
 					true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
@@ -227,7 +209,7 @@ public class JunShiCorpusTask {
 			for (ScoredObject<String> score : list) {
 				dic.add(score.getObject());
 			}
-			FileUtils.write(new File(outpath + "//ig//ig_" + i + ".arff"), Contants.JUNSHITHIRDLABEL(i), "utf-8", true);
+			FileUtils.write(new File(outpath + "//ig//ig_" + i + ".arff"), Contants.YULEBAGUA(i), "utf-8", true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
 				String wekaText = WekaUtils.formWekaArffTextFromRawAndDic(RegexUtils.cleanSpecialWord(raw),
@@ -242,7 +224,7 @@ public class JunShiCorpusTask {
 		DocumentFrequencyFeatureSelector dfSelector = new DocumentFrequencyFeatureSelector(trainlist, tokenFactory);
 		for (int i = start; i <= end; i++) {
 			Set<String> dic = new HashSet<String>();
-			for (String label : corpus.thridlabelsFromFirstlabel("junshi")) {
+			for (String label : corpus.thirdlabelsFromSecondlabel("yulebagua", "yule")) {
 				Map<String, Double> map = dfSelector.getDocumentFrequencyByLabel(label, i * para);
 				for (String word : map.keySet()) {
 					dic.add(word);
@@ -250,7 +232,7 @@ public class JunShiCorpusTask {
 			}
 			System.out.println(dic.size());
 			FileUtils.write(new File(outpath + "//df_per_category//df_per_category" + i + ".arff"),
-					Contants.JUNSHITHIRDLABEL(i), "utf-8", true);
+					Contants.YULEBAGUA(i), "utf-8", true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
 				String wekaText = WekaUtils.formWekaArffTextFromRawAndDic(RegexUtils.cleanSpecialWord(raw),
@@ -263,7 +245,7 @@ public class JunShiCorpusTask {
 	}
 
 	public static void formTestSet(int size) throws IOException {
-		FileUtils.write(new File(outpath + "//test.arff"), Contants.JUNSHITHIRDLABEL("test"), "utf-8", true);
+		FileUtils.write(new File(outpath + "//test.arff"), Contants.YULEBAGUA("test"), "utf-8", true);
 		for (FeatureSelectionBean fsb : testlist) {
 			String wekaText = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanSpecialWord(fsb.getRaw()), tokenFactory,
 					fsb.getLabel());
@@ -296,10 +278,10 @@ public class JunShiCorpusTask {
 	}
 
 	public static void extraCorpusPerCate(int num, double rate) throws IOException {
-		Set<String> labels = corpus.thridlabelsFromFirstlabel("junshi");
+		Set<String> labels = corpus.thridlabelsFromFirstlabelAndSecondLabel("yule", "yulebagua");
 		for (String label : labels) {
 			Set<Integer> extraIndex = new HashSet<Integer>();
-			List<String> fileids = corpus.fileidFromThirLabelAndFirstLabel(label, "junshi");
+			List<String> fileids = corpus.fileidFromThirLabelAndFirstLabel(label, "yule");
 			Random random = new Random(100l);
 			while (extraIndex.size() < num && extraIndex.size() < fileids.size()) {
 				int index = random.nextInt(fileids.size());
@@ -312,7 +294,6 @@ public class JunShiCorpusTask {
 			for (int i = 0; i < (int) (extraIndex.size() * rate); i++) {
 				String raw = corpus.rawFromfileids(fileids.get(i));
 				String title = corpus.titleFromfileid(fileids.get(i));
-				String secondLabel = corpus.secondLabelByFileid(fileids.get(i));
 				FeatureSelectionBean fsb = new FeatureSelectionBean();
 				fsb.setRaw(CommonUtils.jointMultipleTitleAndRaw(3, title, raw).toString());
 				fsb.setLabel(label);
@@ -320,7 +301,6 @@ public class JunShiCorpusTask {
 			}
 			for (int i = (int) (extraIndex.size() * rate) + 1; i < extraIndex.size(); i++) {
 				String raw = corpus.rawFromfileids(fileids.get(i));
-				String secondLabel = corpus.secondLabelByFileid(fileids.get(i));
 				String title = corpus.titleFromfileid(fileids.get(i));
 				FeatureSelectionBean fsb = new FeatureSelectionBean();
 				fsb.setRaw(CommonUtils.jointMultipleTitleAndRaw(3, title, raw).toString());
@@ -328,20 +308,16 @@ public class JunShiCorpusTask {
 				testlist.add(fsb);
 			}
 		}
-
 	}
 
 	public static void main(String[] args) throws IOException {
-		extraCorpusPerCate(500, 1);
+		extraCorpusPerCate(400, 1);
 		formTestSet(6);
-		df(5, 5, 5000);
-		// df_per_category(1,6,600);
-		// chi(1, 6, 5000);
-		// cdh(1,6,5000);
-		// ig(1,6,5000);
-		// xiuzheng();
-
-		// df_per();
+		df(4, 4, 5000);
+//		df_per_category(1, 6, 3000);
+//		cdh(1, 6, 5000);
+//		ig(1, 6, 5000);
+//		chi(1, 6, 5000);
 	}
 
 }

@@ -1,4 +1,4 @@
-package task.sentence;
+package com.rouchtime.nlp.sentence;
 
 import java.util.Collection;
 import java.util.Set;
@@ -115,6 +115,8 @@ public class ChineseHeuristicSentenceModel extends ChineseAbstractSentenceModel 
 						continue;
 					} else {
 						inQuot = false;
+						if (mBadFollowing.contains(tokens[i + 1]))
+							continue;
 						indices.add(Integer.valueOf(i));
 						continue;
 					}
@@ -134,12 +136,15 @@ public class ChineseHeuristicSentenceModel extends ChineseAbstractSentenceModel 
 			}
 
 			// 检查词是否是可能句子结束的标识
-			if (!mPossibleStops.contains(tokens[i]))
+			if (!mPossibleStops.contains(tokens[i])) {
 				continue;
+			}
 			if (mBadFollowing.contains(tokens[i + 1]))
 				continue;
 			indices.add(Integer.valueOf(i));
 		}
+		if (mForceFinalStop || (mPossibleStops.contains(tokens[end]) && !mBadPrevious.contains(tokens[end - 1])))
+			indices.add(Integer.valueOf(end));
 	}
 
 }

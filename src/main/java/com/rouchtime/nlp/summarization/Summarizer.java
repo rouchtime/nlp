@@ -1,4 +1,4 @@
-package task.lexrank;
+package com.rouchtime.nlp.summarization;
 
 
 import java.util.List;

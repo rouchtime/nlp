@@ -1,5 +1,4 @@
-package task.lexrank;
-
+package com.rouchtime.nlp.summarization;
 
 public class RankedSentence implements Comparable<RankedSentence> {
 

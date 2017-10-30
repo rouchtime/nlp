@@ -2,12 +2,16 @@ package com.rouchtime.persistence.dao;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +19,15 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
+import com.aliasi.tokenizer.Tokenizer;
+import com.aliasi.tokenizer.TokenizerFactory;
+import com.rouchtime.nlp.sentence.ChineseSentenceModel;
+import com.rouchtime.nlp.sentence.SummarizationSentenceModel;
 import com.rouchtime.persistence.model.NlpClassificationRaw;
 import com.rouchtime.util.RegexUtils;
 
 import tk.mybatis.mapper.entity.Example;
+import tokenizer.HanLPTokenizerFactory;
 
 @ContextConfiguration(locations = { "classpath:spring-mybatis.xml" })
 public class NlpClassificationRawMapperTest extends AbstractJUnit4SpringContextTests {
@@ -26,6 +35,84 @@ public class NlpClassificationRawMapperTest extends AbstractJUnit4SpringContextT
 	@Autowired
 	NlpClassificationRawMapper nlpClassificationRawMapper;
 	private final static String JUNSHIDIR = "D:\\corpus\\category\\junshi\\17";
+	static final TokenizerFactory TOKENIZER_FACTORY_SPLIT_SENTS = HanLPTokenizerFactory.getIstance();
+	static final ChineseSentenceModel SENTENCE_MODEL = SummarizationSentenceModel.INSTANCE;
+
+	public static List<String> spiltSentence(String document) {
+		List<String> sentences = new ArrayList<String>();
+		for (String line : document.split("!@#!@")) {
+			if (line.equals("")) {
+				continue;
+			}
+			line = RegexUtils.cleanSpecialWord(line.trim());
+			if (line.length() == 0)
+				continue;
+			Tokenizer tokenizer = TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(line.toCharArray(), 0, line.length());
+			String[] tokens = tokenizer.tokenize();
+			int[] sentenceBoundaries = SENTENCE_MODEL.boundaryIndices(tokens);
+			if (sentenceBoundaries.length < 1) {
+				System.out.println("未发现句子边界！");
+				continue;
+			}
+			int sentStartTok = 0;
+			int sentEndTok = 0;
+			for (int i = 0; i < sentenceBoundaries.length; ++i) {
+				sentEndTok = sentenceBoundaries[i];
+				StringBuffer sbSents = new StringBuffer();
+				for (int j = sentStartTok; j <= sentEndTok; j++) {
+					sbSents.append(tokens[j]);
+				}
+				sentStartTok = sentEndTok + 1;
+				sentences.add(sbSents.toString());
+			}
+		}
+		return sentences;
+	}
+
+	@Test
+	public void insertYuLe() throws IOException {
+		String dir = "D:\\corpus\\category\\yule\\inordered_20171024";
+		File[] files = new File(dir).listFiles();
+		for (File file : files) {
+			
+
+				List<String> lines = FileUtils.readLines(file, "utf-8");
+				for (String line : lines) {
+					try {
+
+						NlpClassificationRaw bean = new NlpClassificationRaw();
+						String[] splits = line.split("\t+");
+						bean.setNewsKey(RegexUtils.convertURLToNewsKey(splits[0]));
+						if(bean.getNewsKey()==null) {
+							bean.setNewsKey(UUID.randomUUID().toString().replaceAll("-", ""));
+						}
+						bean.setUrl(splits[0]);
+						bean.setTitle(splits[1]);
+						bean.setContent(splits[2]);
+						bean.setFirstLabel("yule");
+						bean.setSecondLabel(splits[3]);
+						bean.setThirdLabel(splits[4]);
+						NlpClassificationRaw raw1 = new NlpClassificationRaw();
+						raw1.setNewsKey(bean.getNewsKey());
+						if (nlpClassificationRawMapper.selectOne(raw1) != null) {
+							continue;
+						}
+						nlpClassificationRawMapper.insert(bean);
+					}catch (Exception e) {
+						log.info(line);
+						continue;
+					}
+				}
+
+		}
+	}
+
+	class ComparatorTemp implements Comparator<ImmutablePair<Integer, Double>> {
+		@Override
+		public int compare(ImmutablePair<Integer, Double> o1, ImmutablePair<Integer, Double> o2) {
+			return o1.getRight().compareTo(o2.getRight());
+		}
+	}
 
 	@Test
 	public void test() throws IOException {
@@ -122,12 +209,12 @@ public class NlpClassificationRawMapperTest extends AbstractJUnit4SpringContextT
 						for (int i = 2; i < splits.length; i++) {
 							sb.append(splits[i]);
 						}
-						String article  = RegexUtils.cleanSpecialWord(RegexUtils.cleanParaAndImgLabel(sb.toString()));
+						String article = RegexUtils.cleanSpecialWord(RegexUtils.cleanParaAndImgLabel(sb.toString()));
 						if (article.length() < 30) {
 							FileUtils.write(new File("D://junshi_short.txt"), String.format("%s\t%s\n", line, label),
 									"utf-8", true);
 						}
-						
+
 						raw.setContent(article);
 						raw.setUrl(splits[0]);
 
@@ -141,12 +228,12 @@ public class NlpClassificationRawMapperTest extends AbstractJUnit4SpringContextT
 					} catch (DuplicateKeyException e) {
 						continue;
 					} catch (StringIndexOutOfBoundsException e) {
-//						log.error("outofbounds" + file.getName() + "\t\t" + line);
+						// log.error("outofbounds" + file.getName() + "\t\t" + line);
 						FileUtils.write(new File("D://junshi_other.txt"), String.format("%s\t%s\n", line, label),
 								"utf-8", true);
 						continue;
 					} catch (Exception e) {
-//						log.error("other_error" + file.getName() + "\t\t" + line);
+						// log.error("other_error" + file.getName() + "\t\t" + line);
 						FileUtils.write(new File("D://junshi_other.txt"), String.format("%s\t%s\n", line, label),
 								"utf-8", true);
 						continue;
@@ -232,7 +319,7 @@ public class NlpClassificationRawMapperTest extends AbstractJUnit4SpringContextT
 
 				String label = file.getName().replaceAll(".txt", "");
 				NlpClassificationRaw raw = new NlpClassificationRaw();
-				
+
 				String[] splits = line.split("\t+");
 				try {
 					if (splits.length <= 2) {

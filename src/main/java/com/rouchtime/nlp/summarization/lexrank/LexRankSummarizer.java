@@ -1,4 +1,4 @@
-package task.lexrank;
+package com.rouchtime.nlp.summarization.lexrank;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +20,11 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.hankcs.hanlp.HanLP;
+import com.rouchtime.nlp.summarization.HashBag;
+import com.rouchtime.nlp.summarization.RankedSentence;
+import com.rouchtime.nlp.summarization.Sentence;
+import com.rouchtime.nlp.summarization.Summarizer;
+import com.rouchtime.nlp.summarization.Text;
 import com.rouchtime.util.RegexUtils;
 
 import tokenizer.JiebaTokenizerFactory;

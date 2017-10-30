@@ -1,4 +1,4 @@
-package task.lsa;
+package com.rouchtime.nlp.summarization.lsa;
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;

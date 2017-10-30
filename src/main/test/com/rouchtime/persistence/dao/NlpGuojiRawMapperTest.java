@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -109,7 +109,7 @@ public class NlpGuojiRawMapperTest extends AbstractJUnit4SpringContextTests {
 				}
 				nlpGuojiRawMapper.insert(raw);
 			} catch (Exception e) {
-				System.out.println(ExceptionUtils.getFullStackTrace(e));
+				System.out.println(ExceptionUtils.getRootCauseMessage(e));
 			}
 		}
 	}

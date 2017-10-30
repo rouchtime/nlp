@@ -73,4 +73,18 @@ public class Contants {
 				+ "一二战史," + "军事竞赛," + "涉中军演," + "国际军演," + "现代战争," + "战区社会," + "暴力冲突," + "单兵装备," + "陆军装备," + "海军装备,"
 				+ "航空航天," + "导弹," + "战略武器," + "电子信息装备," + "尖端军备," + "武器综合,其他}\r\n" + "@data\r\n";
 	}
+
+	public static String YULESECONDLABEL(Object t) {
+		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {yulebagua,"
+				+ "yuledianshi," + "yuledianying," + "yulemingxing," + "yulezongyi}\r\n" + "@data\r\n";
+	}
+	
+	public static String YULEBAGUA(Object t) {
+		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {gouzaishijiao," + 
+				"mingxingheiliao," + 
+				"mingxingjiating," + 
+				"mingxingqingganbagua," + 
+				"mingxingweifa," + 
+				"qitabaguaneirong}\r\n" + "@data\r\n";
+	}
 }

@@ -1,4 +1,4 @@
-package task.lsa;
+package com.rouchtime.nlp.summarization.lsa;
 
 import java.util.Arrays;
 
