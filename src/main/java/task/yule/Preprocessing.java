@@ -81,7 +81,7 @@ public class Preprocessing {
 	}
 	
 	public static void pinyinConfig(String dir) throws Exception {
-		List<String> lines = FileUtils.readLines(new File(dir,"dianshiju.txt"), "utf-8");
+		List<String> lines = FileUtils.readLines(new File(dir,"zongyi.txt"), "utf-8");
 		Map<String,Set<String>> map = new HashMap<String,Set<String>>();
 		for(String line : lines) {
 			String[] splits = line.split("\t");
@@ -96,7 +96,7 @@ public class Preprocessing {
 				map.get(splits[1]).add(splits[0]);
 			}
 		}
-		List<String> lines1 = FileUtils.readLines(new File(dir,"dianshijupinyin.txt"), "utf-8");
+		List<String> lines1 = FileUtils.readLines(new File(dir,"zongyipinyin.txt"), "utf-8");
 		Map<String,String> map1 = new HashMap<String,String>();
 		for(String line : lines1) {
 			String[] splits = line.split("\t");
@@ -110,11 +110,11 @@ public class Preprocessing {
 			String pinyin = map1.get(key);
 			if(pinyin == null) {
 				for(String name : map.get(key)) {
-					FileUtils.write(new File(dir,"yule_new_dianshiju"), String.format("%s\t%s\t%s\n", name,"无",key),"utf-8",true);
+					FileUtils.write(new File(dir,"yule_new_zongyi"), String.format("%s\t%s\t%s\n", name,"无",key),"utf-8",true);
 				}
 			} else {
 				for(String name : map.get(key)) {
-					FileUtils.write(new File(dir,"yule_new_dianshiju"), String.format("%s\t%s\t%s\n", name,pinyin,key),"utf-8",true);
+					FileUtils.write(new File(dir,"yule_new_zongyi"), String.format("%s\t%s\t%s\n", name,pinyin,key),"utf-8",true);
 				}
 			}
 		}
