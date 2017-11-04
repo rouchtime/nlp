@@ -45,6 +45,16 @@ public class SougouCateCorpus extends AbstractBaseCorpus<NlpSougouPublicRaw> {
 		return list.get(0).getContent();
 	}
 
+	public String titleFromfileids(String fileids) {
+		Example example = new Example(NlpSougouPublicRaw.class);
+		example.createCriteria().andCondition("news_key=", fileids);
+		List<NlpSougouPublicRaw> list = mapper.selectByExample(example);
+		if (null == list || 0 == list.size()) {
+			return null;
+		}
+		return list.get(0).getTitle();
+	}
+	
 	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory) {
 		Example example = new Example(NlpSougouPublicRaw.class);
 		example.createCriteria().andCondition("news_key=", fileids);
