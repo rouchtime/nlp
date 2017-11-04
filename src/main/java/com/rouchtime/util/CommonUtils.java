@@ -1,23 +1,20 @@
 package com.rouchtime.util;
 
 public class CommonUtils {
-	public static String jointMultipleTitleWithCleanRaw(String raw, String title, int multiple) {
-		if (multiple <= 0) {
-			multiple = 0;
-		}
-		if (String.valueOf(raw).equals("null")) {
-			String msg = "raw is null";
-			throw new IllegalArgumentException(msg);
-		}
-		if (String.valueOf(title).equals("null")) {
-			String msg = "title is null";
-			throw new IllegalArgumentException(msg);
-		}
+	
+	/**
+	 * 标题和内容的拼接
+	 * @param multiple 标题倍数
+	 * @param title
+	 * @param raw
+	 * @return
+	 */
+	public static StringBuffer jointMultipleTitleAndRaw(int multiple, String title, String raw) {
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < multiple; i++) {
-			sb.append(title).append("，");
+			sb.append(title).append(",");
 		}
-		sb.append(RegexUtils.cleanSpecialWord(raw));
-		return sb.toString();
+		sb.append(raw);
+		return sb;
 	}
 }

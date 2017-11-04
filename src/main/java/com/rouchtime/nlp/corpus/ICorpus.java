@@ -96,5 +96,7 @@ public interface ICorpus {
 	public List<String> fileids();
 //	public String rawFromfileids(String fileids);
 	public List<Term> wordFromfileids(String fileids, TokenizerFactory factory);
-//	public String labelFromfileids(String fileids);
+	public String labelFromfileid(String fileid);
+
+	public Set<String> labelsFromFirstlabel(String firstLabel);
 }

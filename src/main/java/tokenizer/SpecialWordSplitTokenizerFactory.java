@@ -15,6 +15,10 @@ public class SpecialWordSplitTokenizerFactory implements Serializable, Tokenizer
 		this.specialWord = specialWord;
 	}
 
+	private SpecialWordSplitTokenizerFactory() {
+		this.specialWord = "\\s+";
+	}
+	
 	@Override
 	public Tokenizer tokenizer(char[] ch, int start, int length) {
 		return new SpecialWordSplitTokenizer(ch, start, length);

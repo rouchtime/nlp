@@ -85,9 +85,9 @@ public class SougouCateCorpus extends AbstractBaseCorpus<NlpSougouPublicRaw> {
 		return set;
 	}
 
-	public String labelFromfileids(String fileids) {
+	public String labelFromfileid(String fileid) {
 		Example example = new Example(NlpSougouPublicRaw.class);
-		example.createCriteria().andCondition("news_key=", fileids);
+		example.createCriteria().andCondition("news_key=", fileid);
 		List<NlpSougouPublicRaw> list = mapper.selectByExample(example);
 		if (null == list || 0 == list.size()) {
 			return null;

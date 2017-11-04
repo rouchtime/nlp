@@ -1,12 +1,16 @@
 package com.rouchtime.nlp.featureSelection.source;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.google.common.collect.Table;
 import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 
 
 public abstract class DataSource {
@@ -15,11 +19,11 @@ public abstract class DataSource {
 
     }
 
-    public boolean reset(ICorpus corpus,TokenizerFactory factory) throws IOException {
+    public boolean reset(List<FeatureSelectionBean> corpus,TokenizerFactory factory) throws IOException {
         resetImpl(corpus,factory);
         return load();
     }
-    abstract protected boolean resetImpl(ICorpus corpus,TokenizerFactory factory) throws IOException;
+    abstract protected boolean resetImpl(List<FeatureSelectionBean> corpus,TokenizerFactory factory) throws IOException;
     abstract public boolean load() throws IOException;
     // 得到词典
     abstract public Set<String> getDictionary();

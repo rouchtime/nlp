@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.rouchtime.nlp.corpus.ICorpus;
+import com.rouchtime.nlp.featureSelection.bean.FeatureSelectionBean;
 
 /**
  * Created by py on 16-9-21.
@@ -15,7 +18,7 @@ import com.rouchtime.nlp.corpus.ICorpus;
  */
 public class SimpleDataSourcePool {
     static private Map<String, DataSource> cache = new HashMap<>();
-    public static DataSource create(ICorpus corpus, Class clazz,TokenizerFactory factory)
+    public static DataSource create(List<FeatureSelectionBean> corpus, Class clazz,TokenizerFactory factory)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException {
         String key = corpus.getClass().toString() + '_' + clazz.toString();
         if(cache.containsKey(key))

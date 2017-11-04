@@ -89,9 +89,9 @@ public class GuojiCorpus extends AbstractBaseCorpus<NlpGuojiRaw> {
 		return set;
 	}
 
-	public String labelFromfileids(String fileids) {
+	public String labelFromfileid(String fileid) {
 		Example example = new Example(NlpGuojiRaw.class);
-		example.createCriteria().andCondition("news_key=", fileids);
+		example.createCriteria().andCondition("news_key=", fileid);
 		List<NlpGuojiRaw> list = mapper.selectByExample(example);
 		if (null == list || 0 == list.size()) {
 			return null;

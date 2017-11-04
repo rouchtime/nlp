@@ -10,4 +10,10 @@ public interface OtherCommonMapper<T> {
 	
 	@SelectProvider(type = OtherCommonProvider.class, method = "dynamicSQL")
 	List<T> selectLabels();
+	
+	@SelectProvider(type = OtherCommonProvider.class, method = "dynamicSQL")
+	List<T> selectSecondLabels();
+	
+	@SelectProvider(type = OtherCommonProvider.class, method = "dynamicSQL")
+	List<T> selectThirdLabels();
 }

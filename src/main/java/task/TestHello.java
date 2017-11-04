@@ -1,32 +1,30 @@
 package task;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 
+import com.rouchtime.util.RegexUtils;
+
 public class TestHello {
 	public static void main(String[] args) throws IOException {
-		List<String> lines = FileUtils.readLines(new File("D:\\stopwords1.txt"), "utf-8");
-		Set<String> set1 = new HashSet<String>();
-		for (String line : lines) {
-			set1.add(line.replaceAll("\\s+", line));
+		String path = "D:\\corpus\\abstract\\ele.txt";
+		for(String line : FileUtils.readLines(new File(path))) {
+			String raw  = line.split("\t+")[2];
+			raw= RegexUtils.cleanParaAndImgLabel(raw);
+			FileUtils.write(new File("D:\\corpus\\abstract\\ele_raw.txt"), raw +"\n","utf-8",true);
 		}
-
-		List<String> lines2 = FileUtils.readLines(new File("D:\\stopwords.txt"), "utf-8");
-		Set<String> set2 = new HashSet<String>();
-		for (String line : lines2) {
-			set2.add(line.trim());
-		}
-		set1.addAll(set2);
-		for (String a : set1) {
-			FileUtils.write(new File("D://stopwords3.txt"), a + "\n", "utf-8", true);
-		}
-
-		// System.out.println(new Character(' ').hashCode());
 	}
 
 	public static String stringToHexString(String s) {
@@ -37,5 +35,20 @@ public class TestHello {
 			str = str + s4;
 		}
 		return str;
+	}
+	
+	public static void op() throws IOException {
+		File[] files = new File("D:\\corpus\\comment\\blackkey\\file").listFiles();
+		for(File file : files) {
+			File[] subFiles = file.listFiles();
+			for(File subfile : subFiles) {
+				List<String> lines = FileUtils.readLines(subfile, "utf-8");
+				for(String line : lines) {
+					String newLine = String.format("%s\n", 
+							line.split("\t")[2]);
+					FileUtils.write(new File("D://black_commentid"), newLine,"utf-8",true);
+				}
+			}
+		}
 	}
 }

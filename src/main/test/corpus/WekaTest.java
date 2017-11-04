@@ -7,7 +7,6 @@ import org.apache.commons.io.FileUtils;
 
 import com.aliasi.util.ObjectToCounterMap;
 import com.aliasi.util.ObjectToDoubleMap;
-import com.rouchtime.nlp.featureSelection.selector.CatgoryDiscriminating;
 import com.rouchtime.nlp.featureSelection.selector.WeightingMethod;
 
 import junit.framework.TestCase;

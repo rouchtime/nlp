@@ -19,8 +19,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.ExceptionUtils;
 
 import com.aliasi.symbol.MapSymbolTable;
 import com.aliasi.tokenizer.TokenizerFactory;
@@ -328,11 +329,16 @@ public class DuplicateUtils {
 		Set<Integer> vector = new TreeSet<Integer>();
 		String content = duplicateBean.getRaw();
 		for (String token : factory.tokenizer(content.toCharArray(), 0, content.length())) {
-			String[] term = token.split(Contants.SLASH);
-			if (term.length != 2) {
-				continue;
+			String word = "";
+			if (token.indexOf(Contants.SLASH) != -1) {
+				String[] term = token.split(Contants.SLASH);
+				if (term.length != 2) {
+					continue;
+				}
+				word = term[0];
+			} else {
+				word = token;
 			}
-			String word = term[0];
 			vector.add(wordIndexMap.getOrAddSymbolInteger(word));
 		}
 		return vector;
@@ -463,12 +469,12 @@ public class DuplicateUtils {
 			ObjectInputStream ois = new ObjectInputStream(fin);
 			readExternal(ois);
 		} catch (FileNotFoundException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
+			logger.error(ExceptionUtils.getRootCauseMessage(e));
 		} catch (IOException e) {
-			logger.error(ExceptionUtils.getFullStackTrace(e));
+			logger.error(ExceptionUtils.getRootCauseMessage(e));
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			logger.error(ExceptionUtils.getFullStackTrace(e));
+			logger.error(ExceptionUtils.getRootCauseMessage(e));
 		}
 		this.factory = factory;
 	}

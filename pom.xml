@@ -69,19 +69,12 @@
 			<version>1.0.3</version>
 		</dependency>
 
-
-		<!-- FudanNLP -->
-		<dependency>
-			<groupId>org.fnlp</groupId>
-			<artifactId>fnlp-core</artifactId>
-			<version>2.1-SNAPSHOT</version>
-		</dependency>
 		<!-- JieBa -->
-		<dependency>
-			<groupId>com.huaban</groupId>
-			<artifactId>jieba-analysis</artifactId>
-			<version>1.0.2</version>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>com.huaban</groupId> -->
+		<!-- <artifactId>jieba-analysis</artifactId> -->
+		<!-- <version>1.0.2</version> -->
+		<!-- </dependency> -->
 		<!-- Ansj -->
 		<dependency>
 			<groupId>org.ansj</groupId>
@@ -102,6 +95,11 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math</artifactId>
+			<version>2.0</version>
 		</dependency>
 
 		<!-- 阿里巴巴json -->
@@ -138,9 +136,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-assembly-plugin</artifactId>
-			<version>3.0.0</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
 		</dependency>
 
 		<!-- log start -->
@@ -337,6 +335,7 @@
 									<includes>
 										<include>**/*.txt</include>
 										<include>**/*.m</include>
+										<include>**/*.dic</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>

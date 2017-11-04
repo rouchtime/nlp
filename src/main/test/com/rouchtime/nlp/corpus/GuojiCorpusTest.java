@@ -31,7 +31,7 @@ public class GuojiCorpusTest extends AbstractJUnit4SpringContextTests {
 		for (String fileid : guojiCorpus.fileids()) {
 			String line = WekaUtils.formWekaArffTextFromRaw(
 					RegexUtils.cleanSpecialWord(guojiCorpus.rawFromfileids(fileid)), stopNatureTokenizerFactory,
-					guojiCorpus.labelFromfileids(fileid));
+					guojiCorpus.labelFromfileid(fileid));
 			FileUtils.write(new File("D://corpus//category//guoji//weka_guoji.arff"), line + "\n", "utf-8", true);
 		}
 	}
