@@ -3,11 +3,8 @@ package com.rouchtime.nlp.keyword;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import com.rouchtime.util.RegexUtils;
-
-import tokenizer.AnsjTokenizerFactory;
 
 /**
  * 根据相似度计算词汇链
@@ -15,20 +12,22 @@ import tokenizer.AnsjTokenizerFactory;
  * @author 龚帅宾
  *
  */
-public class LexicalChain {
-	public Synonym syn = Synonym.getInstance();
+public class LexicalChainMaxSim {
+	public WordSimiarity syn;
 	List<Set<String>> chainsList = new ArrayList<Set<String>>();
-	Set<String> anotherChains = new HashSet<String>();
+	Map<String,Double> tfMap;
 	private double delt = 0.5;
 
-	public LexicalChain(double delt) {
+	public LexicalChainMaxSim(double delt,WordSimiarity simiarity) {
+		this.syn = simiarity;
 		this.delt = delt;
-		chainsList.add(anotherChains);
 	}
-
+	
 	public void add(String word) {
 		if (!syn.isExistWord(word)) {
-			anotherChains.add(word);
+			Set<String> set = new HashSet<String>();
+			set.add(word);
+			chainsList.add(set);
 			return;
 		}
 		double simMaxTotalChain = -Double.MIN_VALUE;

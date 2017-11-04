@@ -19,13 +19,13 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
  * @author 龚帅宾
  *
  */
-public class Synonym {
+public class Word2VectorWordSimiarity implements WordSimiarity{
 	private WordDictionary wordDictionary;
 	private List<double[]> values;
 	private Map<String, Integer> w_index_Map;
 	private List<String> ws;
 
-	private Synonym() {
+	private Word2VectorWordSimiarity() {
 		wordDictionary = WordDictionary.getInstance();
 		values = wordDictionary.getWORD_VECTOR_LIST();
 		w_index_Map = wordDictionary.getWORD_INDEX_MAP();
@@ -94,6 +94,7 @@ public class Synonym {
 
 	}
 
+	@Override
 	public double calTowWordSimiarity(String word1, String word2) {
 		if (word1.equals(word2)) {
 			return 1.0;
@@ -114,12 +115,12 @@ public class Synonym {
 		return true;
 	}
 	
-	public static Synonym getInstance() {
+	public static Word2VectorWordSimiarity getInstance() {
 		return SingletonHolder.instance;
 	}
 
 	private static class SingletonHolder {
-		private static final Synonym instance = new Synonym();
+		private static final Word2VectorWordSimiarity instance = new Word2VectorWordSimiarity();
 	}
 
 	/**

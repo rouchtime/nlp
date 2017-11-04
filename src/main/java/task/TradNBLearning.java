@@ -29,8 +29,8 @@ public class TradNBLearning {
 		for (String label : SOUGOUCORPUS.labels()) {
 			Classification classification = new Classification(label);
 			for (String fileid : SOUGOUCORPUS.fileidFromLabel(label)) {
-				String content = CommonUtils.jointMultipleTitleWithCleanRaw(SOUGOUCORPUS.rawFromfileids(fileid),
-						SOUGOUCORPUS.titleFromfileids(fileid), 3);
+				StringBuffer content = CommonUtils.jointMultipleTitleAndRaw(3,SOUGOUCORPUS.rawFromfileids(fileid),
+						SOUGOUCORPUS.titleFromfileids(fileid));
 				Classified<CharSequence> classified = new Classified<CharSequence>(content, classification);
 				tnbClassifier.handle(classified);
 			}

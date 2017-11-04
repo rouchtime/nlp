@@ -9,6 +9,7 @@ import org.ansj.domain.Result;
 import org.ansj.domain.Term;
 import org.ansj.library.DicLibrary;
 import org.ansj.splitWord.analysis.ToAnalysis;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
@@ -24,14 +25,19 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 	}
 	
 	private void initSelfDic() {
-//		String pPath = AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//		String path = this.getClass().getClassLoader().getResource("library/dictionary_20170418_ansj.dic").getPath();
-        ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();  
-        URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");  
-        String path = resource.getPath();  
-//		modelPath = new File(pPath).getParent() + "library/dictionary_20170418_ansj.dic";
-		dicLibrary = new DicLibrary();
-		dicLibrary.put("userdefine", path);
+		try {
+//			String pPath = AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+//			String path = this.getClass().getClassLoader().getResource("library/dictionary_20170418_ansj.dic").getPath();
+	        ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();  
+	        URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");  
+	        String path = resource.getPath();  
+//			modelPath = new File(pPath).getParent() + "library/dictionary_20170418_ansj.dic";
+			dicLibrary = new DicLibrary();
+			dicLibrary.put("userdefine", path);
+		} catch(Exception e) {
+			ExceptionUtils.getRootCauseMessage(e);
+		}
+
 	}
 	
 	private static volatile AnsjTokenizerFactory instance;
