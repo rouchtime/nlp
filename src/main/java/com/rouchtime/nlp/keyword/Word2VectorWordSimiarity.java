@@ -100,7 +100,7 @@ public class Word2VectorWordSimiarity implements WordSimiarity{
 			return 1.0;
 		}
 		if (w_index_Map.get(word1) == null || w_index_Map.get(word2) == null) {
-			return 0.0;
+			return 0.1;
 		}
 		int w_index1 = w_index_Map.get(word1);
 		int w_index2 = w_index_Map.get(word2);
