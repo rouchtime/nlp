@@ -8,6 +8,10 @@ public class Contants {
 	public final static Integer VIDEO_PIC_URL_LENGTH = 21;
 	public final static String DOT = ".";
 
+	public static enum WordArea {
+		TITLE, FIRSTPRAR, BODY, LASTPRAR
+	};
+
 	public final static String URL_TIME_REGEX = "yyMMddHHmmssSSS";
 
 	public static String SOUGOUHEAD(Object t) {
@@ -78,13 +82,10 @@ public class Contants {
 		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {yulebagua,"
 				+ "yuledianshi," + "yuledianying," + "yulemingxing," + "yulezongyi}\r\n" + "@data\r\n";
 	}
-	
+
 	public static String YULEBAGUA(Object t) {
-		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {gouzaishijiao," + 
-				"mingxingheiliao," + 
-				"mingxingjiating," + 
-				"mingxingqingganbagua," + 
-				"mingxingweifa," + 
-				"qitabaguaneirong}\r\n" + "@data\r\n";
+		return "@relation '" + t + "'\r\n" + "@attribute Text string\r\n" + "@attribute class {gouzaishijiao,"
+				+ "mingxingheiliao," + "mingxingjiating," + "mingxingqingganbagua," + "mingxingweifa,"
+				+ "qitabaguaneirong}\r\n" + "@data\r\n";
 	}
 }

@@ -9,18 +9,19 @@ import java.util.Map;
 import java.util.Set;
 
 import com.aliasi.util.ObjectToDoubleMap;
+import com.rouchtime.nlp.keyword.lexicalChain.LexicalChainMaxTF;
+import com.rouchtime.nlp.keyword.similarity.WordSimiarity;
 
 public class SynonymMerge {
-	private WordSimiarity cilinSimiarity = CiLinWordSimiarity.getInstance();
 
 	/**
-	 * 基于近义词相似度计算词频
+	 * 基于近义词相似度计算合并后的词频
 	 * 
 	 * @param tokens
 	 * @return
 	 */
-	public ObjectToDoubleMap<String> mergeBySyn(HashMap<String, Double> tf) {
-		LexicalChainMaxTF lctf = new LexicalChainMaxTF(0.6, Word2VectorWordSimiarity.getInstance(), tf);
+	public static Map<String,Double> mergeTFBySynonym(Map<String,Double> tf, WordSimiarity simiarity) {
+		LexicalChainMaxTF lctf = new LexicalChainMaxTF(0.7, simiarity, tf);
 		for (String word : tf.keySet()) {
 			try {
 				lctf.add(word);
@@ -29,13 +30,13 @@ public class SynonymMerge {
 			}
 		}
 		List<Set<String>> listLexicalChain = lctf.getLexicalChain();
-		List<String> representWords= lctf.getRepresentWordList();
-		ObjectToDoubleMap<String> newTF = new ObjectToDoubleMap<String>();
+		List<String> representWords = lctf.getRepresentWordList();
+		Map<String,Double> newTF = new HashMap<String,Double>();
 		for (int i = 0; i < listLexicalChain.size(); i++) {
 			String represent = representWords.get(i);
 			double sum = 0.0;
 			for (String word : listLexicalChain.get(i)) {
-				sum += (tf.get(word) * cilinSimiarity.calTowWordSimiarity(word, represent));
+				sum += (tf.get(word) * simiarity.calTowWordSimiarity(word, represent));
 			}
 			newTF.put(represent, sum);
 		}
@@ -43,11 +44,5 @@ public class SynonymMerge {
 	}
 
 	public static void main(String[] args) {
-		ObjectToDoubleMap<String> map = new ObjectToDoubleMap<>();
-		map.increment("年后", 1.0);
-		map.increment("年后", 1.0);
-		map.increment("年后", 1.0);
-		SynonymMerge sm = new SynonymMerge();
-		sm.mergeBySyn(map);
 	}
 }

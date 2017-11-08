@@ -64,7 +64,6 @@ public class LSHMinHash extends LSH {
 	 * @return
 	 */
 	private int computeSignatureSize(int band, double threshold) {
-
 		int r = (int) Math.ceil(Math.log(1.0 / band) / Math.log(threshold)) + 1;
 		return r * band;
 	}
