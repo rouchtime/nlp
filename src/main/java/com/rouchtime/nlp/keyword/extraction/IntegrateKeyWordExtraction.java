@@ -34,6 +34,19 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 	private Map<String, Double> idfMap;
 	private LexicalChainMaxSim lexicalChain;
 
+	/**
+	 * 
+	 * @param tokenizerFactory 分词器工厂，实例出单例的分词器
+	 * @param wordSimiarity 相似度计算方法，实例出单例的相似度
+	 * <p>
+	 * 1、根据word2vector的相似度；
+	 * {@link #Word2VectorWordSimiarity}
+	 * </p>
+	 * <p>
+	 * 2、根据同义词词林的相似度
+	 * {@link #CiLinWordSimilarity}
+	 * </p>
+	 */
 	public IntegrateKeyWordExtraction(TokenizerFactory tokenizerFactory, WordSimiarity wordSimiarity) {
 		super(tokenizerFactory);
 		this.wordSimiarity = wordSimiarity;
@@ -338,10 +351,14 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 				token.setLastPosition(position);
 			} else {
 				int numInSents = 0;
-				for (String sents : super.SENTENCES) {
-					if (sents.indexOf(word) != -1) {
-						numInSents++;
-						continue;
+				for (List<List<String>> paragraph : PARAGRAPH) {
+					for(List<String> sent : paragraph) {
+						for(String token : sent) {
+							if (token.equals(word)) {
+								numInSents++;
+								break;
+							}
+						}
 					}
 				}
 				Token token = new Token(index++, word, pos, Contants.WordArea.TITLE, position - position, position,
@@ -367,10 +384,14 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 				token.setLastPosition(position);
 			} else {
 				int numInSents = 0;
-				for (String sents : super.SENTENCES) {
-					if (sents.indexOf(word) != -1) {
-						numInSents++;
-						continue;
+				for (List<List<String>> paragraph : PARAGRAPH) {
+					for(List<String> sent : paragraph) {
+						for(String token : sent) {
+							if (token.equals(word)) {
+								numInSents++;
+								continue;
+							}
+						}
 					}
 				}
 				Token token = new Token(index++, word, pos, Contants.WordArea.TITLE, position - position, position,

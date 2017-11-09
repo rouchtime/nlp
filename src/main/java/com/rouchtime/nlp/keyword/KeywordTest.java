@@ -2,14 +2,12 @@ package com.rouchtime.nlp.keyword;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.hankcs.hanlp.HanLP;
 import com.rouchtime.nlp.keyword.extraction.IntegrateKeyWordExtraction;
-import com.rouchtime.nlp.keyword.extraction.TextRankWithMultiWinExtraction;
-import com.rouchtime.nlp.keyword.extraction.TfIdfKeyWordExtraction;
 import com.rouchtime.nlp.keyword.similarity.Word2VectorWordSimiarity;
 import com.rouchtime.util.RegexUtils;
 
@@ -27,7 +25,48 @@ public class KeywordTest {
 		return stopNatureTokenizerFactory;
 	}
 
+
+	private static boolean isContantsSubString(String string, List<String> re) {
+		for(String word : re) {
+			if(word.indexOf(string)!=-1) {
+				return true;
+			}
+		}
+		return false;
+	}
 	public static void main(String[] args) throws IOException {
+//		List<String> list = new ArrayList<String>();
+//		list.add("A");
+//		list.add("ABCD");
+//		list.add("AD");
+//		list.add("AB");
+//		list.add("ABC");
+//		list.add("B");
+//		list.add("BC");
+//		list.add("ACD");
+//		list.add("AC");
+//		
+//		List<String> re = new ArrayList<String>();
+//		int j = 0;
+//		for (int i = 0; i < list.size(); i++) {
+//			for (j = i; j < list.size(); j++) {
+//				if (i == j) {
+//					continue;
+//				}
+//				/*j包含i*/
+//				if (list.get(j).indexOf(list.get(i)) != -1) {
+//					break;
+//				}
+//			}
+//			if(j >= list.size()) {
+//				if(isContantsSubString(list.get(i),re)) {
+//					continue;
+//				} else {
+//					re.add(list.get(i));
+//				}
+//			}
+//		}
+//		System.out.println(re);
 		// HashMap<String,Double> map = new HashMap<String,Double>();
 		// map.put("all", 1.0);
 		// System.out.println(map.get("all"));
@@ -39,9 +78,15 @@ public class KeywordTest {
 		// LexicalChain(0.6,Word2VectorWordSimiarity.getInstance());
 		for(String line : FileUtils.readLines(new File("D:\\corpus\\keyword\\test.txt"), "utf-8")) {
 			String title = line.split("\t+")[1];
-			String raw = RegexUtils.cleanParaAndImgLabel(line.split("\t+")[2]);
-			IntegrateKeyWordExtraction keywordExtraction = (IntegrateKeyWordExtraction) new IntegrateKeyWordExtraction(tokenFactory, Word2VectorWordSimiarity.getInstance()).enableMultithreading(true);
-			FileUtils.write(new File("D://corpus//test//keyword_result"), line.split("\t")[0] + "\t" + keywordExtraction.keywordsExtract(title, raw, 50).toString()+"\n","utf-8",true);
+			String raw = RegexUtils.cleanImgLabel(line.split("\t+")[2]);
+			IntegrateKeyWordExtraction keywordExtraction = (IntegrateKeyWordExtraction) new IntegrateKeyWordExtraction(tokenFactory, Word2VectorWordSimiarity.getInstance()).enableWordAssemble(true);
+			Long start = System.currentTimeMillis();
+			String keywords = keywordExtraction.keywordsExtract(title, raw, 20).toString();
+			Long end = System.currentTimeMillis();
+			System.out.println(end - start);
+			FileUtils.write(new File("D://corpus//test//keyword_result_nonzuhe"), line.split("\t")[0] + "\t" + keywords +"\n","utf-8",true);
+//			keywordExtraction.enableWordAssemble(false);
+//			FileUtils.write(new File("D://corpus//test//keyword_result_zuhe"), line.split("\t")[0] + "\t" + keywordExtraction.keywordsExtract(title, raw, 20).toString()+"\n","utf-8",true);
 		}
 //		String title = "19岁嫁了个可以做她爹的老公，如今36岁把一家五口打理得井井有条";
 //		String text = "在娱乐圈老夫少妻似乎已经是成了一个见怪不怪的话题了，而有的人在红了以后，就开始变得浮躁了。有的人爆红后，依然能够不忘初心。而今天要说的这个，是娱乐圈的大名人，就连巩俐都和他相爱过，他就是张艺谋。" + 
@@ -62,6 +107,7 @@ public class KeywordTest {
 //				"" + 
 //				"如今36岁的陈婷把3个孩子养得很好，相信这也是让张艺谋能专心在外赚钱的原因。";
 //		text = RegexUtils.cleanParaAndImgLabel(text);
+
 		
 		// System.out.println(HanLP.extractKeyword(text, 100));
 		// ObjectToDoubleMap<String> tfMap = new ObjectToDoubleMap<>();

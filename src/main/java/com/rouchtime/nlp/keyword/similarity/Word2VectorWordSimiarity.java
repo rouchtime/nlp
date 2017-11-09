@@ -17,7 +17,7 @@ import com.rouchtime.nlp.keyword.DictionaryResource;
 
 /**
  * 根据Word2Vector计算近义词，单例
- * 
+ * {@link #Word2VectorWordSimiarity}
  * @author 龚帅宾
  *
  */

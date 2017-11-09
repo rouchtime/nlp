@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-
+/**
+ * {@link #CiLinWordSimilarity}
+ * @author Admin
+ *
+ */
 public class CiLinWordSimilarity implements WordSimiarity{
 	private Logger logger = Logger.getLogger(CiLinWordSimilarity.class);
 	private HashMap<String, List<String>> keyWord_Identifier_HashMap;// <关键词，编号List集合>哈希

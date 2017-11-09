@@ -12,6 +12,11 @@ public class Contants {
 		TITLE, FIRSTPRAR, BODY, LASTPRAR
 	};
 
+	/**
+	 * 段落分割标识符
+	 */
+	public final static String PARAGRAPHFLAG = "!@#!@";
+	
 	public final static String URL_TIME_REGEX = "yyMMddHHmmssSSS";
 
 	public static String SOUGOUHEAD(Object t) {
