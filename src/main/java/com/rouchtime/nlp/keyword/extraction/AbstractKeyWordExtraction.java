@@ -1,11 +1,12 @@
 package com.rouchtime.nlp.keyword.extraction;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.ansj.recognition.impl.NatureRecognition;
 import org.apache.log4j.Logger;
 
 import com.aliasi.tokenizer.Tokenizer;
@@ -18,7 +19,6 @@ import com.rouchtime.util.Contants;
 import com.rouchtime.util.RegexUtils;
 
 import tokenizer.AnsjNlpTokenizerFactory;
-import tokenizer.AnsjTokenizerFactory;
 
 public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 	private Logger logger = Logger.getLogger(AbstractKeyWordExtraction.class);
@@ -37,20 +37,6 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 	@Override
 	public List<String> keywordsExtract(String title, String article, int keywordNum) {
 		List<ScoredObject<String>> sortedList = keywordsScore(title, article, keywordNum);
-
-		/* 是否启动词组合 */
-		if (enableWordAssemble) {
-			String text = RegexUtils.cleanSpecialWord(title + "," + article);
-			for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(text.toCharArray(), 0, text.length())) {
-				if (token.equals("")) {
-					continue;
-				}
-				DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
-			}
-			ObjectToDoubleMap<String> assembleCandiate = wordAssemble(sortedList, PARAGRAPH);
-			sortedList = assembleCandiate.scoredObjectsOrderedByValueList();
-		}
-
 		List<String> keywords = new ArrayList<String>();
 		int num = 0;
 		for (ScoredObject<String> scoreObject : sortedList) {
@@ -84,6 +70,26 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		}
 		ObjectToDoubleMap<String> sortedKeywordMap = modifyKeywordsSort(titleTokens, bodyTokens);
 		List<ScoredObject<String>> sortedList = sortedKeywordMap.scoredObjectsOrderedByValueList();
+		/* 是否启动词组合 */
+		if (enableWordAssemble) {
+			String text = RegexUtils.cleanSpecialWord(title + "," + article);
+			for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(text.toCharArray(), 0, text.length())) {
+				if (token.equals("")) {
+					continue;
+				}
+				if(token.split(Contants.SLASH).length != 2) {
+					continue;
+				}
+				String word = token.split(Contants.SLASH)[0];
+				if(word.indexOf("】")!=-1|| word.indexOf("【")!=-1) {
+					DOC_TOKEN_NATURE_MAP.put(word.replaceAll("】|【", ""), "u");
+					continue;
+				}
+				DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
+			}
+			ObjectToDoubleMap<String> assembleCandiate = wordAssemble(sortedList, PARAGRAPH);
+			sortedList = assembleCandiate.scoredObjectsOrderedByValueList();
+		}
 		return sortedList.subList(0, Math.min(sortedList.size(), keywordNum));
 	}
 
@@ -130,13 +136,13 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		}
 		sortedList.addAll(candidate.scoredObjectsOrderedByValueList());
 		ObjectToDoubleMap<String> combineResult = new ObjectToDoubleMap<>();
-		subTokenCombine(combineResult,sortedList);
+		subTokenCombine(combineResult, sortedList);
 		return combineResult;
 	}
 
-
 	/**
 	 * 子词合并
+	 * 
 	 * @param combineResult
 	 * @param sortedList
 	 */
@@ -147,31 +153,31 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 				if (i == j) {
 					continue;
 				}
-				/*j包含i*/
+				/* j包含i */
 				if (sortedList.get(j).getObject().indexOf(sortedList.get(i).getObject()) != -1) {
 					break;
 				}
 			}
-			if(j >= sortedList.size()) {
-				if(isContantsSubString(sortedList.get(i).getObject(),combineResult)) {
+			if (j >= sortedList.size()) {
+				if (isContantsSubString(sortedList.get(i).getObject(), combineResult)) {
 					continue;
 				} else {
 					combineResult.put(sortedList.get(i).getObject(), sortedList.get(i).score());
 				}
 			}
 		}
-		
+
 	}
 
 	private boolean isContantsSubString(String object, ObjectToDoubleMap<String> combineResult) {
-		for(String word : combineResult.keySet()) {
-			if(word.indexOf(object)!=-1) {
+		for (String word : combineResult.keySet()) {
+			if (word.indexOf(object) != -1) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * 根据词性规则组合词
 	 * 
@@ -185,8 +191,8 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		}
 		for (int i = 0; i < sent.size(); i++) {
 			String now = sent.get(i);
-			String now_nature = DOC_TOKEN_NATURE_MAP.get(now);
-			if (map.get(now) == null || now_nature == null || now_nature.equals("")) {
+			String now_nature = String.valueOf(DOC_TOKEN_NATURE_MAP.get(now));
+			if (map.get(now) == null || now_nature.equals("null") || now_nature.equals("")) {
 				continue;
 			}
 			if (i == 0) {
@@ -222,10 +228,10 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 				continue;
 			}
 			String before = sent.get(i - 1);
-			String before_nature = DOC_TOKEN_NATURE_MAP.get(before);
+			String before_nature = String.valueOf(DOC_TOKEN_NATURE_MAP.get(before));
 			String after = sent.get(i + 1);
-			String after_nature = DOC_TOKEN_NATURE_MAP.get(after);
-			if (null == before_nature || null == after_nature || before.equals("") || after.equals("")) {
+			String after_nature = String.valueOf(DOC_TOKEN_NATURE_MAP.get(after));
+			if (before_nature.equals("null") || after_nature.equals("null") || before.equals("") || after.equals("")) {
 				continue;
 			}
 			/* 两两组合 */
@@ -314,6 +320,9 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		List<List<List<String>>> paragraph = new ArrayList<List<List<String>>>();
 		List<String> titleToken = new ArrayList<String>();
 		for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(title.toCharArray(), 0, title.length())) {
+			if(token.split(Contants.SLASH)[0].indexOf("】")!=-1) {
+				continue;
+			}
 			titleToken.add(token.split(Contants.SLASH)[0]);
 			DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
 		}

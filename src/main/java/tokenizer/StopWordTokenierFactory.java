@@ -24,9 +24,11 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 	private static final long serialVersionUID = -1312129063609071054L;
 
 	private final Set<String> mStopSet;
-	public StopWordTokenierFactory(TokenizerFactory factory, Set<String> stopSet) {
+	private final Set<String> mSignalSet;
+	public StopWordTokenierFactory(TokenizerFactory factory, Set<String> stopSet,Set<String> signlaSet) {
 		super(factory);
 		mStopSet = new HashSet<String>(stopSet);
+		mSignalSet = new HashSet<String>(signlaSet);
 	}
 
 	/**
@@ -37,6 +39,8 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 		super(factory);
 		InputStream is = getClass().getResourceAsStream("/nlpdic/stopwords.txt");
 		mStopSet = readFromFileNames(is);
+		is = getClass().getResourceAsStream("/nlpdic/stopword_nonChinese.txt");
+		mSignalSet = readFromFileNames(is);
 	}
 
 	public Set<String> stopSet() {
@@ -49,7 +53,15 @@ public class StopWordTokenierFactory extends ModifyTokenTokenizerFactory impleme
 		if (term.length != 2) {
 			return null;
 		}
-		return mStopSet.contains(term[0]) ? null : token;
+		if(mStopSet.contains(term[0])) {
+			return null;
+		}
+		for(String sig : mSignalSet) {
+			if(term[0].indexOf(sig)!=-1) {
+				return null;
+			}
+		}
+		return token;
 	}
 
 	@Override

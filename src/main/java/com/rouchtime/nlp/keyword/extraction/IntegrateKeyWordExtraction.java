@@ -33,7 +33,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 	private WordSimiarity wordSimiarity;
 	private Map<String, Double> idfMap;
 	private LexicalChainMaxSim lexicalChain;
-
+	
 	/**
 	 * 
 	 * @param tokenizerFactory 分词器工厂，实例出单例的分词器
