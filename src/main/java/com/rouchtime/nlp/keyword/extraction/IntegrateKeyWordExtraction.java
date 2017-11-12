@@ -101,6 +101,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 			/* 词汇链权重设置 */
 			wordLexicalWeight(tokenMap, mergedTF, word_lexical_weight);
 
+			/*多窗口textRank权重设置*/
 			textRankWeight(titleTokens, bodyTokens, mergedTF, word_textRank_weight);
 
 		} catch (Exception e) {
