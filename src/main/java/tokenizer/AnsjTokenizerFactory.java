@@ -1,4 +1,5 @@
 package tokenizer;
+
 import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
@@ -19,27 +20,31 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 	private static final long serialVersionUID = 572943028477125945L;
 	private String modelPath;
 	private DicLibrary dicLibrary;
+
 	@SuppressWarnings("static-access")
 	private AnsjTokenizerFactory() {
 
 	}
-	
+
 	private void initSelfDic() {
 		try {
-//			String pPath = AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//			String path = this.getClass().getClassLoader().getResource("library/dictionary_20170418_ansj.dic").getPath();
-	        ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();  
-	        URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");  
-	        String path = resource.getPath();  
-//			modelPath = new File(pPath).getParent() + "library/dictionary_20170418_ansj.dic";
+			// String pPath =
+			// AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+			// String path =
+			// this.getClass().getClassLoader().getResource("library/dictionary_20170418_ansj.dic").getPath();
+			ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();
+			URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");
+			String path = resource.getPath();
+			// modelPath = new File(pPath).getParent() +
+			// "library/dictionary_20170418_ansj.dic";
 			dicLibrary = new DicLibrary();
 			dicLibrary.put("userdefine", path);
-		} catch(Exception e) {
+		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
 
 	}
-	
+
 	private static volatile AnsjTokenizerFactory instance;
 
 	@Override
@@ -64,11 +69,25 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 		private List<String> parse = new ArrayList<String>();
 		private int currentPos = -1;
+
 		public AnsjTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
-			Result result = ToAnalysis.parse(text,dicLibrary.get("userdefine"));
+			Result result = null;
+			if (enableUserDictionary) {
+
+				result = ToAnalysis.parse(text, dicLibrary.get("userdefine"));
+			} else {
+				result = ToAnalysis.parse(text);
+			}
 			for (Term term : result.getTerms()) {
-				parse.add(term.getName() + "/" + term.getNatureStr());
+				if(enableFilterSingleWord) {
+					if(term.getName().length() <= 1) {
+						continue;
+					}
+					parse.add(term.getName() + "/" + term.getNatureStr());
+				} else {
+					parse.add(term.getName() + "/" + term.getNatureStr());
+				}
 			}
 		}
 
@@ -84,4 +103,24 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 	}
 
+	private boolean enableUserDictionary = false;
+	private boolean enableFilterSingleWord = false;
+	
+	public AnsjTokenizerFactory enableFilterSingleWord(boolean enable) {
+		if (enable) {
+			this.enableFilterSingleWord = true;
+		} else {
+			this.enableFilterSingleWord = false;
+		}
+		return this;
+	}
+	
+	public AnsjTokenizerFactory enableUserDictionary(boolean enable) {
+		if (enable) {
+			this.enableUserDictionary = true;
+		} else {
+			this.enableUserDictionary = false;
+		}
+		return this;
+	}
 }

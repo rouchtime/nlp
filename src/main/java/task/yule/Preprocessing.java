@@ -30,6 +30,12 @@ public class Preprocessing {
 		corpus = (ClassificationCorpus) applicationContext.getBean(ClassificationCorpus.class);
 		tokenFactory = getTokenFactory();
 	}
+	
+	public static void nameEntity() {
+		
+	}
+	
+	
 	public static void combineBaGua(String dir) {
 		File[] listFiles = new File(dir, "八卦").listFiles();
 		try {
@@ -119,6 +125,9 @@ public class Preprocessing {
 			}
 		}
 	} 
+	
+	
+	
 	
 	public static void main(String[] args) throws Exception {
 		pinyinConfig("D:\\corpus\\category\\yule");
