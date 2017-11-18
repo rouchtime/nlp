@@ -27,6 +27,7 @@
 	<classpathentry kind="lib" path="D:/github/fnlp/fnlp-dev/target/fnlp-dev-2.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="D:/github/fnlp/fnlp-app/target/fnlp-app-2.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="D:/github/fnlp/fnlp-demo/target/fnlp-demo-2.1-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/zc_gx_j_test.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
@@ -34,6 +35,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/workspace/eastheadline/nlp/lib/zc_gx_j_test.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -197,6 +197,9 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			}
 			if (i == 0) {
 				String after = sent.get(i + 1);
+				if(after.length() <= 1) {
+					continue;
+				}
 				String after_nature = DOC_TOKEN_NATURE_MAP.get(after);
 				if (null == after_nature || after.equals("")) {
 					continue;
@@ -213,6 +216,9 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			}
 			if (i == sent.size() - 1) {
 				String before = sent.get(i - 1);
+				if(before.length() <= 1) {
+					continue;
+				}
 				String before_nature = DOC_TOKEN_NATURE_MAP.get(before);
 				if (null == before_nature || before.equals("")) {
 					continue;
@@ -238,6 +244,9 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			if ((now_nature.charAt(0) == 'a' && after_nature.charAt(0) == 'n')
 					|| (now_nature.charAt(0) == 'n' && after_nature.charAt(0) == 'n')) {
 				if (map.get(after) == null) {
+					if(after.length() <= 1) {
+						continue;
+					}
 					candidate.increment(now + after, map.get(now));
 				} else {
 					candidate.increment(now + after, map.get(now) + map.get(after));
@@ -247,6 +256,9 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			if ((before_nature.charAt(0) == 'n' && now_nature.charAt(0) == 'n')
 					|| (before_nature.charAt(0) == 'a' && now_nature.charAt(0) == 'n')) {
 				if (map.get(before) == null) {
+					if(before.length() <= 1) {
+						continue;
+					}
 					candidate.increment(before + now, map.get(now));
 				} else {
 					candidate.increment(before + now, map.get(now) + map.get(before));
@@ -263,10 +275,16 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 					candidate.increment(before + now + after, map.get(before) + map.get(now) + map.get(after));
 				}
 				if (map.get(before) != null && map.get(after) == null) {
-					candidate.increment(before + now, map.get(before) + map.get(now));
+					if(after.length() <= 1) {
+						continue;
+					}
+					candidate.increment(before + now + after, map.get(before) + map.get(now));
 				}
 				if (map.get(before) == null && map.get(after) != null) {
-					candidate.increment(now + after, map.get(now) + map.get(after));
+					if(before.length() <= 1) {
+						continue;
+					}
+					candidate.increment(before + now + after, map.get(now) + map.get(after));
 				}
 			}
 
@@ -339,9 +357,14 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 				continue;
 			Tokenizer tokenizer = TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(line.toCharArray(), 0, line.length());
 			String[] tokens = tokenizer.tokenize();
-			int[] sentenceBoundaries = SENTENCE_MODEL.boundaryIndices(tokens);
-			if (sentenceBoundaries.length < 1) {
-				System.out.println("未发现句子边界！");
+			int[] sentenceBoundaries;
+			try {
+				sentenceBoundaries = SENTENCE_MODEL.boundaryIndices(tokens);
+				if (sentenceBoundaries.length < 1) {
+					System.out.println("未发现句子边界！");
+					continue;
+				}
+			} catch(Exception e) {
 				continue;
 			}
 			int sentStartTok = 0;

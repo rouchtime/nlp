@@ -39,13 +39,15 @@ public class YuleCorpusTask {
 	private static TokenizerFactory tokenFactory;
 	private static List<FeatureSelectionBean> trainlist = new ArrayList<FeatureSelectionBean>();
 	private static List<FeatureSelectionBean> testlist = new ArrayList<FeatureSelectionBean>();
-	private static String outpath = "D:\\corpus\\category\\weka\\yulebagua";
+	private static String outpath = "D:\\yuleTEST\\yule";
 	static {
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-mybatis.xml");
 		corpus = (ClassificationCorpus) applicationContext.getBean(ClassificationCorpus.class);
 		tokenFactory = getTokenFactory();
 	}
 
+	
+	
 	public static void outputDir() throws IOException {
 		for (String secondlabel : corpus.secondlabelsFromFirstlabel("junshi")) {
 			for (String label : corpus.labelsFromSecondlabelAndFirstLabel(secondlabel,"junshi")) {
@@ -63,52 +65,9 @@ public class YuleCorpusTask {
 	}
 
 	private static TokenizerFactory getTokenFactory() {
-		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(JiebaTokenizerFactory.getIstance());
-		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		return stopNatureTokenizerFactory;
-	}
-
-	public static void seocndLabelDfExtract() throws IOException {
-		List<FeatureSelectionBean> list = new ArrayList<FeatureSelectionBean>();
-		for (String secondlabel : corpus.secondlabelsFromFirstlabel("junshi")) {
-			for (String label : corpus.labelsFromSecondlabelAndFirstLabel(secondlabel,"junshi")) {
-				for (String fileid : corpus.fileidFromLabel(label)) {
-					FeatureSelectionBean fsb = new FeatureSelectionBean();
-					fsb.setLabel(secondlabel);
-					StringBuffer sb = new StringBuffer();
-					sb.append(corpus.titleFromfileid(fileid)).append(",").append(corpus.titleFromfileid(fileid))
-							.append(",").append(corpus.titleFromfileid(fileid)).append(",")
-							.append(corpus.rawFromfileids(fileid));
-					fsb.setRaw(sb.toString());
-					list.add(fsb);
-				}
-			}
-		}
 		StopWordTokenierFactory stopWordFactory = new StopWordTokenierFactory(HanLPTokenizerFactory.getIstance());
 		StopNatureTokenizerFactory stopNatureTokenizerFactory = new StopNatureTokenizerFactory(stopWordFactory);
-		DocumentFrequencyFeatureSelector dfSelector = new DocumentFrequencyFeatureSelector(list,
-				stopNatureTokenizerFactory);
-		// Set<String> dic = new HashSet<String>();
-		// List<ScoredObject<String>> list1 = dfSelector.getDocumentFrequency(1000);
-		// for (ScoredObject<String> score : list1) {
-		// dic.add(score.getObject());
-		// }
-		Set<String> dic = new HashSet<String>();
-		for (String label : corpus.secondLabels()) {
-			Map<String, Double> map = dfSelector.getDocumentFrequencyByLabel(label, 2000);
-			for (String word : map.keySet()) {
-				dic.add(word);
-			}
-		}
-		System.out.println(dic.size());
-		FileUtils.write(new File("D://junshi_second_cat.arff"), Contants.JUNSHISECONDLABEL(0), "utf-8", true);
-		for (FeatureSelectionBean fsb : list) {
-			String raw = fsb.getRaw();
-			String wekaText = WekaUtils.formWekaArffTextFromRawAndDic(RegexUtils.cleanSpecialWord(raw),
-					stopNatureTokenizerFactory, fsb.getLabel(), dic);
-			FileUtils.write(new File("D://junshi_second_cat.arff"), wekaText, "utf-8", true);
-		}
-
+		return stopNatureTokenizerFactory;
 	}
 
 	public static void df_per() throws IOException {
@@ -149,7 +108,7 @@ public class YuleCorpusTask {
 			for (ScoredObject<String> score : list) {
 				dic.add(score.getObject());
 			}
-			FileUtils.write(new File(outpath + "//df//df_" + i + ".arff"), Contants.YULEBAGUA(i), "utf-8", true);
+			FileUtils.write(new File(outpath + "//df//df_" + i + ".arff"), Contants.YULESECONDLABEL(i), "utf-8", true);
 			for (FeatureSelectionBean pair : trainlist) {
 				String raw = pair.getRaw();
 				String wekaText = WekaUtils.formWekaArffTextFromRawAndDic(RegexUtils.cleanSpecialWord(raw),
@@ -245,7 +204,7 @@ public class YuleCorpusTask {
 	}
 
 	public static void formTestSet(int size) throws IOException {
-		FileUtils.write(new File(outpath + "//test.arff"), Contants.YULEBAGUA("test"), "utf-8", true);
+		FileUtils.write(new File(outpath + "//test.arff"), Contants.YULESECONDLABEL("test"), "utf-8", true);
 		for (FeatureSelectionBean fsb : testlist) {
 			String wekaText = WekaUtils.formWekaArffTextFromRaw(RegexUtils.cleanSpecialWord(fsb.getRaw()), tokenFactory,
 					fsb.getLabel());
@@ -277,12 +236,14 @@ public class YuleCorpusTask {
 		}
 	}
 
-	public static void extraCorpusPerCate(int num, double rate) throws IOException {
-		Set<String> labels = corpus.thridlabelsFromFirstlabelAndSecondLabel("yule", "yulebagua");
+	public static void extraCorpusPerCate(int num, double rate,long seed) throws IOException {
+//		Set<String> labels = corpus.thridlabelsFromFirstlabelAndSecondLabel("yule", "yulebagua");
+		Set<String> labels = corpus.secondlabelsFromFirstlabel("yule");
 		for (String label : labels) {
 			Set<Integer> extraIndex = new HashSet<Integer>();
-			List<String> fileids = corpus.fileidFromThirLabelAndFirstLabel(label, "yule");
-			Random random = new Random(100l);
+//			List<String> fileids = corpus.fileidFromThirLabelAndFirstLabel(label, "yule");
+			List<String> fileids = corpus.fileidFromSecondLabel(label);
+			Random random = new Random(seed);
 			while (extraIndex.size() < num && extraIndex.size() < fileids.size()) {
 				int index = random.nextInt(fileids.size());
 				if (extraIndex.contains(index)) {
@@ -310,10 +271,14 @@ public class YuleCorpusTask {
 		}
 	}
 
+	public String labelRecognize(String text) {
+		return text;
+	}
+	
 	public static void main(String[] args) throws IOException {
-		extraCorpusPerCate(400, 1);
+		extraCorpusPerCate(1000, 0.7,100l);
 		formTestSet(6);
-		df(4, 4, 5000);
+		df(1, 6, 5000);
 //		df_per_category(1, 6, 3000);
 //		cdh(1, 6, 5000);
 //		ig(1, 6, 5000);

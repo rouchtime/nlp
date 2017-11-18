@@ -89,6 +89,11 @@ public class HanLPTokenizerFactory implements Serializable, TokenizerFactory {
 			else {
 				currentPos++;
 				Term term = parse.get(currentPos);
+				if(enableFilterSingleWord) {
+					if(term.word.length() <= 1) {
+						return null;
+					}
+				}
 				String natrue = natureConfig.get(term.nature.toString());
 				if(natrue == null) {
 					natrue = "un";
@@ -97,5 +102,16 @@ public class HanLPTokenizerFactory implements Serializable, TokenizerFactory {
 			}
 		}
 
+	}
+	
+	private boolean enableFilterSingleWord = false;
+	
+	public HanLPTokenizerFactory enableFilterSingleWord(boolean enable) {
+		if (enable) {
+			this.enableFilterSingleWord = true;
+		} else {
+			this.enableFilterSingleWord = false;
+		}
+		return this;
 	}
 }

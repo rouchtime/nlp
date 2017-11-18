@@ -116,7 +116,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		}
 		return weightMap;
 	}
-
+	
 	private void textRankWeight(List<String> titleTokens, List<String> bodyTokens, Map<String, Double> mergedTF,
 			double[] word_textRank_weight) throws Exception {
 		TextRankWithMultiWinExtraction textRank = new TextRankWithMultiWinExtraction(2, 10, super.tokenizerFactory);

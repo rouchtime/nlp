@@ -1,6 +1,4 @@
 package tokenizer;
-
-import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
@@ -14,21 +12,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
-import com.rouchtime.nlp.keyword.KeywordTest;
-import com.rouchtime.nlp.keyword.extraction.AbstractKeyWordExtraction;
 
 public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 	private static final long serialVersionUID = 572943028477125945L;
 	private String modelPath;
 	private DicLibrary dicLibrary;
-	private boolean enableUserSelfDic = false;
 
 	@SuppressWarnings("static-access")
 	private AnsjTokenizerFactory() {
 
 	}
-
-	@SuppressWarnings("static-access")
 	private void initSelfDic() {
 		try {
 			// String pPath =
@@ -72,18 +65,24 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 		private List<String> parse = new ArrayList<String>();
 		private int currentPos = -1;
-
-		@SuppressWarnings("static-access")
 		public AnsjTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
 			Result result = null;
-			if (enableUserSelfDic) {
+			if (enableUserDictionary) {
+
 				result = ToAnalysis.parse(text, dicLibrary.get("userdefine"));
 			} else {
 				result = ToAnalysis.parse(text);
 			}
 			for (Term term : result.getTerms()) {
-				parse.add(term.getName() + "/" + term.getNatureStr());
+				if(enableFilterSingleWord) {
+					if(term.getName().length() <= 1) {
+						continue;
+					}
+					parse.add(term.getName() + "/" + term.getNatureStr());
+				} else {
+					parse.add(term.getName() + "/" + term.getNatureStr());
+				}
 			}
 		}
 
@@ -99,11 +98,23 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 	}
 
-	public AnsjTokenizerFactory enableUserSelfDic(boolean enable) {
+	private boolean enableUserDictionary = false;
+	private boolean enableFilterSingleWord = false;
+	
+	public AnsjTokenizerFactory enableFilterSingleWord(boolean enable) {
 		if (enable) {
-			enableUserSelfDic = true;
+			this.enableFilterSingleWord = true;
 		} else {
-			enableUserSelfDic = false;
+			this.enableFilterSingleWord = false;
+		}
+		return this;
+	}
+	
+	public AnsjTokenizerFactory enableUserDictionary(boolean enable) {
+		if (enable) {
+			this.enableUserDictionary = true;
+		} else {
+			this.enableUserDictionary = false;
 		}
 		return this;
 	}

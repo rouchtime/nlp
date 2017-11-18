@@ -1,8 +1,7 @@
-/**
- * 
- */
 package com.rouchtime.nlp.duplicate.simhash;
 
+
+import java.util.Arrays;
 import java.util.List;
 
 import com.aliasi.tokenizer.TokenizerFactory;
@@ -44,7 +43,7 @@ public class Simhash {
 		int bitLen = 64;
 		int[] bits = new int[bitLen];
 		for (String t : tokenizerFactory.tokenizer(doc.toCharArray(), 0, doc.length())) {
-			long v = MurmurHash.hash64(t.split("/")[0]);
+			long v = MurmurHash.hash64(t);
 			for (int i = bitLen; i >= 1; --i) {
 				if (((v >> (bitLen - i)) & 1) == 1)
 					++bits[i - 1];
