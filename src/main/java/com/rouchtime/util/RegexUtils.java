@@ -57,6 +57,12 @@ public class RegexUtils {
 		}
 	}
 
+	public static boolean containsCNStr(String input) {
+		Pattern pattern = Pattern.compile("[\u4e00-\u9fa5]+");
+		Matcher matcher = pattern.matcher((CharSequence) input);
+		return matcher.find();
+	}
+	
 	public static Boolean isExistsNewsReportWords(String raw) {
 		String regex = "据?.*报道|(?:(?:[0-1]?[0-9]{1})[-/\\\\.月])?(?:[0-3]?[0-9]{1})[日]?讯|讯|获悉|消息人士透露|最新公告显示";
 		Pattern pattern = Pattern.compile(regex, Pattern.CANON_EQ);
