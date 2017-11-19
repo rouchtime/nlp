@@ -6,53 +6,185 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
-import com.aliasi.tokenizer.NGramTokenizerFactory;
+import com.hankcs.hanlp.HanLP;
 import com.rouchtime.util.RegexUtils;
 
-public class DupSimHashUtils {
-	private Map<Long, List<Doc>> map = new HashMap<Long, List<Doc>>();
-	Simhash simhash = new Simhash(new NGramTokenizerFactory(2, 3));
+import hbaseDao.HbaseTbKwQueryDao;
+import hbaseDao.HbaseTbUrlKwDao;
+import hbaseDao.KwBean;
+import hbaseDao.UrlKwBean;
 
-	public List<String> select(String doc) throws Exception {
-		long simvalue = simhash.simhash64(doc);
-		// long simvalue = SimHashUtil.getSimHash(doc, 64).longValue();
-		long[] keys = splitSimhash(simvalue);
-		List<String> dupList = new ArrayList<String>();
-		Set<String> filterSet = new HashSet<String>();
-		for (long key : keys) {
-			if (map.get(key) != null) {
-				for (Doc d : map.get(key)) {
-					if (filterSet.contains(d.getRowkey())) {
-						continue;
-					} else {
-						if (SimHashUtil.hammingDistance(d.getHash(), simvalue) <= 6) {
-							dupList.add(d.getRowkey());
-							filterSet.add(d.getRowkey());
-						}
-					}
+public class KeywordsForMassDataDuplicate {
+	private String columFamliy = "d";
+	private String zk = "";
+	HbaseTbKwQueryDao tbKwQueryDao = HbaseTbKwQueryDao.getInstance();
+	HbaseTbUrlKwDao tbUrlKwDao = HbaseTbUrlKwDao.getInstance();
+
+	private Map<String, List<Doc>> map = new HashMap<String, List<Doc>>();
+
+	public boolean add(String newsKey, String doc) {
+		/* 检查newsKey是否可以转化成Long类型，hbase中的列名取Max(Long) - Long.parse(newsKey)的差值 */
+		String urlKey = null;
+		try {
+			urlKey = String.valueOf(Long.MAX_VALUE - Long.parseLong(newsKey));
+		} catch (NumberFormatException e) {
+			System.err.println(String.format("%s\nNewsKey parse Long error! NewsKey = %s",
+					ExceptionUtils.getFullStackTrace(e), newsKey));
+			return false;
+		}
+
+		List<String> keywords = HanLP.extractKeyword(doc, 30);
+		if (keywords.size() <= 7) {
+			System.err.println("keywords size less 7!");
+			return false;
+		}
+		List<String> keys = splitFingerPrint(keywords);
+
+		try {
+			/* 查询tb_kw_query表 */
+			List<KwBean> kwList = tbKwQueryDao.getListBean(keys, zk);
+			if (kwList.size() != keys.size()) {
+				System.err.println(String.format("Check Keys Number is Not Equal Result Number %d!=%d", keys.size(),
+						kwList.size()));
+				return false;
+			}
+
+			/* 查询tb_url_kw表 */
+			List<String> urlKeys = new ArrayList<String>();
+			urlKeys.add(urlKey);
+			List<UrlKwBean> listKwBean = tbUrlKwDao.getListBean(urlKeys, zk);
+			if (listKwBean.size() != urlKeys.size()) {
+				System.err.println(String.format("Check Keys Number is Not Equal Result Number %d!=%d", keys.size(),
+						urlKeys.size()));
+			}
+
+			/* 更新和插入tb_kw_query表 */
+			for (int i = 0; i < kwList.size(); i++) {
+				if (kwList.get(i) == null) {
+					KwBean kwb = new KwBean();
+					kwb.setFamily(columFamliy);
+					kwb.setRk(keys.get(i));
+					Map<String, String> map = new HashMap<String, String>();
+					map.put(urlKey, newsKey);
+					kwb.setMap(map);
+					kwList.set(i, kwb);
+				} else {
+					KwBean kwb = kwList.get(i);
+					Map<String, String> map = kwb.getMap();
+					map.put(urlKey, newsKey);
+
 				}
 			}
+			tbKwQueryDao.putListBean(kwList, zk);
+
+			/* 更新和插入tb_url_kw表 */
+			StringBuffer value = new StringBuffer();
+			for (String keyword : keywords) {
+				value.append(keyword).append(",");
+			}
+			value.delete(value.length() - 1, value.length());
+			if (listKwBean.get(0) == null) {
+				UrlKwBean bean = new UrlKwBean();
+				bean.setFamily(columFamliy);
+				bean.setRk(urlKey);
+				Map<String, String> map = new HashMap<String, String>();
+				map.put(value.toString(), null);
+				listKwBean.set(0, bean);
+			}
+			tbUrlKwDao.putListBean(listKwBean, zk);
+		} catch (IOException e) {
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
+			return false;
 		}
-		return dupList;
+		return true;
 	}
 
-	public void add(String newskey, String doc) throws Exception {
-		long simvalue = simhash.simhash64(doc);
-		// long simvalue = SimHashUtil.getSimHash(doc, 64).longValue();
-		long[] keys = splitSimhash(simvalue);
-		for (long key : keys) {
+	public List<String> select(String doc) {
+		List<String> keywords = HanLP.extractKeyword(doc, 30);
+		if (keywords.size() <= 7) {
+			System.err.println("keywords size less 7!");
+			return null;
+		}
+		List<String> keys = splitFingerPrint(keywords);
+		StringBuffer value = new StringBuffer();
+		for (String keyword : keywords) {
+			value.append(keyword).append(",");
+		}
+		value.delete(value.length() - 1, value.length());
+		try {
+			List<KwBean> kwBeanList = tbKwQueryDao.getListBean(keys, zk);
+			Set<String> resultUrlSet = new HashSet<String>();
+			for (KwBean bean : kwBeanList) {
+				if (bean == null) {
+					continue;
+				}
+				Set<String> selectUrlSet = new HashSet<String>();
+				for (Entry<String, String> entry : bean.getMap().entrySet()) {
+					selectUrlSet.add(entry.getKey());
+				}
+				List<String> selectUrlList = new ArrayList<String>(selectUrlSet);
+				List<UrlKwBean> resultUrlKwBean = tbUrlKwDao.getListBean(selectUrlList, zk);
+				if (selectUrlList.size() != resultUrlKwBean.size()) {
+					continue;
+				}
+				for (int i = 0; i < resultUrlKwBean.size(); i++) {
+					if (resultUrlKwBean.get(i) == null) {
+						continue;
+					}
+					String tmpKeywords = resultUrlKwBean.get(i).getMap().get(selectUrlList.get(i));
+					if (resultUrlSet.contains(tmpKeywords)) {
+						continue;
+					} else {
+						String[] array_keyswords = tmpKeywords.split(",");
+						Set<String> set1 = new HashSet<String>(Arrays.asList(array_keyswords));
+						Set<String> set2 = new HashSet<String>(keywords);
+						if (jaccardIndex(set1, set2) >= 0.9) {
+							resultUrlSet.add(value.toString());
+						}
+					}
+
+				}
+			}
+			return new ArrayList<String>(resultUrlSet);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public void addToRAM(String newskey, String doc) {
+		List<String> keywords = HanLP.extractKeyword(doc, 30);
+		if (keywords.size() <= 7) {
+			System.out.println("keywords size less 7!");
+			return;
+		}
+		Collections.sort(keywords);
+		for (int i = 0; i < keywords.size() - 7; i++) {
+			StringBuffer sb = new StringBuffer();
+			for (int j = 0; j < 7; j++) {
+				sb.append(keywords.get(i + j));
+			}
+			String key = sb.toString();
 			Doc d = new Doc();
-			d.setHash(simvalue);
+			StringBuffer sbk = new StringBuffer();
+			for (String keyword : keywords) {
+				sbk.append(keyword).append(",");
+			}
+			sbk.delete(sbk.length() - 1, sbk.length());
+			d.setKeywords(sbk.toString());
 			d.setRowkey(newskey);
 			if (map.get(key) == null) {
 				List<Doc> listDoc = new ArrayList<Doc>();
@@ -61,117 +193,73 @@ public class DupSimHashUtils {
 			} else {
 				map.get(key).add(d);
 			}
+			sb.setLength(0);
 		}
 	}
 
-	public static String out(long simhash) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < 64; i++) {
-			sb.append(simhash >> i & 1);
+	public Set<String> selectFromRAM(String doc) {
+		List<String> keywords = HanLP.extractKeyword(doc, 30);
+		if (keywords.size() <= 7) {
+			System.out.println("keywords size less 7!");
+			return null;
 		}
-		return sb.toString();
-	}
-
-	public static long[] splitSimhash(Long simhash) throws Exception {
-		StringBuilder sb = new StringBuilder();
-		String[] splitHashValue = new String[9];
-
-		/* 分8份，C(2,8) */
-//		for (int i = 0; i < 64; i++) {
-//			sb.append(simhash >> i & 1);
-//			if ((i + 1) % 8 == 0) {
-//				splitHashValue[(i + 1) / 8 - 1] = sb.toString();
-//				sb.setLength(0);
-//			}
-//		}
-
-		 for (int i = 0; i < 56; i++) {
-		 sb.append(simhash >> i & 1);
-		 if ((i + 1) % 7 == 0) {
-		 splitHashValue[(i + 1) / 7 - 1] = sb.toString();
-		 sb.setLength(0);
-		 }
-		 }
-		 for (int i = 56; i < 64; i++) {
-		 sb.append(simhash >> i & 1);
-		 splitHashValue[8] = sb.toString();
-		 sb.setLength(0);
-		 }
-		List<String[]> arrays = new ArrayList<String[]>();
-		combinationSelect(splitHashValue, 2, arrays);
-		long[] result = new long[arrays.size()];
-		int k = 0;
-		for (String[] list : arrays) {
-			if (list.length != 2) {
-				throw new Exception("排列组合不为2！");
+		Collections.sort(keywords);
+		Set<String> urlSet = new HashSet<String>();
+		for (int i = 0; i < keywords.size() - 7; i++) {
+			StringBuffer sb = new StringBuffer();
+			for (int j = 0; j < 7; j++) {
+				sb.append(keywords.get(i + j));
 			}
-			String _tmp = list[0] + list[1];
-			BigInteger bigInt = new BigInteger(_tmp, 2);
-			result[k++] = bigInt.longValue();
-		}
-		return result;
-	}
-
-	public static DupSimHashUtils getInstance() {
-		return SingletonHolder.instance;
-	}
-
-	private static class SingletonHolder {
-		private static DupSimHashUtils instance = new DupSimHashUtils();
-	}
-
-	private DupSimHashUtils() {
-	}
-
-	/**
-	 * 组合选择（从列表中选择n个组合）
-	 * 
-	 * @param dataList
-	 *            待选列表
-	 * @param n
-	 *            选择个数
-	 */
-	private static void combinationSelect(String[] dataList, int n, List<String[]> arrays) {
-		combinationSelect(dataList, 0, new String[n], 0, arrays);
-	}
-
-	/**
-	 * 组合选择
-	 * 
-	 * @param dataList
-	 *            待选列表
-	 * @param dataIndex
-	 *            待选开始索引
-	 * @param resultList
-	 *            前面（resultIndex-1）个的组合结果
-	 * @param resultIndex
-	 *            选择索引，从0开始
-	 */
-	private static void combinationSelect(String[] dataList, int dataIndex, String[] resultList, int resultIndex,
-			List<String[]> arrays) {
-		int resultLen = resultList.length;
-		int resultCount = resultIndex + 1;
-		if (resultCount > resultLen) { // 全部选择完时，输出组合结果
-			String[] list = new String[resultList.length];
-			for (int i = 0; i < resultList.length; i++) {
-				list[i] = resultList[i];
+			String key = sb.toString();
+			if (map.get(key) != null) {
+				for (Doc d : map.get(key)) {
+					if (!urlSet.contains(d.getRowkey())) {
+						String[] array_keyswords = d.getKeywords().split(",");
+						Set<String> set1 = new HashSet<String>(Arrays.asList(array_keyswords));
+						Set<String> set2 = new HashSet<String>(keywords);
+						if (jaccardIndex(set1, set2) >= 0.9) {
+							urlSet.add(d.getRowkey());
+						}
+					}
+				}
 			}
-			arrays.add(list);
-			return;
+			sb.setLength(0);
 		}
-		// 递归选择下一个
-		for (int i = dataIndex; i < dataList.length + resultCount - resultLen; i++) {
-			resultList[resultIndex] = dataList[i];
-			combinationSelect(dataList, i + 1, resultList, resultIndex + 1, arrays);
-		}
+		return urlSet;
 	}
 
-	@SuppressWarnings("static-access")
+	private double jaccardIndex(final Set<String> s1, final Set<String> s2) {
+
+		Set<String> intersection = new HashSet<String>(s1);
+		intersection.retainAll(s2);
+
+		Set<String> union = new HashSet<String>(s1);
+		union.addAll(s2);
+		if (union.isEmpty()) {
+			return 0;
+		}
+		return (double) intersection.size() / union.size();
+	}
+
+	private List<String> splitFingerPrint(List<String> keywords) {
+		Collections.sort(keywords);
+		List<String> keys = new ArrayList<String>();
+		for (int i = 0; i < keywords.size() - 7; i++) {
+			StringBuffer sb = new StringBuffer();
+			for (int j = 0; j < 7; j++) {
+				sb.append(keywords.get(i + j));
+			}
+			String key = sb.toString();
+			keys.add(key);
+		}
+		return keys;
+	}
+
 	public static void main(String[] args) throws Exception {
 		// long a = 121334l;
 		// System.out.println(out(a));
 		// splitSimhash(a);
-		DupSimHashUtils utils = DupSimHashUtils.getInstance();
+		DupKWUtils utils = new DupKWUtils();
 		// String[] test = new String[5];
 		// for(int i=0;i<5;i++) {
 		// test[i] = String.valueOf(i);
@@ -204,9 +292,9 @@ public class DupSimHashUtils {
 		int i = 0;
 		long s = System.currentTimeMillis();
 		for (File file : files) {
-//			 if(!file.getName().equals("xaa")) {
-//			 continue;
-//			 }
+			if (!file.getName().equals("xaa")) {
+				continue;
+			}
 			try {
 				in = new FileInputStream(file);
 				br = new BufferedReader(new InputStreamReader(in));
@@ -226,7 +314,7 @@ public class DupSimHashUtils {
 					utils.add(rawKey + ":" + title, title + raw);
 					// System.out.println(System.currentTimeMillis() - a);
 					line = br.readLine();
-					if (i % 5000 == 0) {
+					if (i % 1000 == 0) {
 						System.out.println(i);
 						long e = System.currentTimeMillis();
 						System.out.println(e - s);
@@ -273,7 +361,7 @@ public class DupSimHashUtils {
 				String title = splits[2];
 				String raw = RegexUtils.cleanParaAndImgLabel(splits[3]);
 				long st = System.currentTimeMillis();
-				List<String> list = utils.select(title + raw);
+				Set<String> list = utils.select(title + raw);
 				long et = System.currentTimeMillis() - st;
 				sum += et;
 				if (c % 1000 == 0) {

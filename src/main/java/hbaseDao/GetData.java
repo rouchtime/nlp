@@ -21,16 +21,16 @@ public class GetData {
             list.add(String.valueOf(1000+i));
         }
 
-        List<Bean> listB=getListBean(list,zk,htable);
+        List<KwBean> listB=getListBean(list,zk,htable);
         System.out.println(listB);
 
     }
 
-    public static List<Bean> getListBean(List<String> list,String zk,String htable) throws IOException {
+    public static List<KwBean> getListBean(List<String> list,String zk,String htable) throws IOException {
         HTableInterface hTableInterface = null;
         HbaseClient hbaseClient = new HbaseClient(zk);
         HConnection hConnection = hbaseClient.getConnection();
-        List<Bean> listBean = new ArrayList<>();
+        List<KwBean> listBean = new ArrayList<>();
         try {
             hTableInterface = hConnection.getTable(htable);
             List<Get> listGet = new ArrayList<>();
@@ -43,10 +43,8 @@ public class GetData {
                     if (listGet.size() > 100) {
                         Result[] results = hTableInterface.get(listGet);
                         for (Result result : results) {
-
-
                             if (!result.isEmpty()) {
-                                Bean bean = new Bean();
+                            	KwBean bean = new KwBean();
                                 Map<String, String> map = new HashMap<>();
                                 String rk = Bytes.toString(result.getRow());
                                 bean.setRk(rk);
@@ -79,7 +77,7 @@ public class GetData {
                     for (Result result : results) {
 
                         if (!result.isEmpty()) {
-                            Bean bean = new Bean();
+                        	KwBean bean = new KwBean();
                             Map<String, String> map = new HashMap<>();
                             String rk = Bytes.toString(result.getRow());
                             bean.setRk(rk);

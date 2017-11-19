@@ -2,7 +2,7 @@ package hbaseDao;
 
 import java.util.Map;
 
-public class Bean_long {
+public class SimHashBean {
     private Long rk;
 
     private String family;

@@ -38,12 +38,12 @@ public class Simhash {
 		i = i + (i >>> 32);
 		return (int) i & 0x7f;
 	}
-
+	
 	public long simhash64(String doc) {
 		int bitLen = 64;
 		int[] bits = new int[bitLen];
 		for (String t : tokenizerFactory.tokenizer(doc.toCharArray(), 0, doc.length())) {
-			long v = MurmurHash.hash64(t);
+			long v = Murmur3.hash64(t.getBytes());
 			for (int i = bitLen; i >= 1; --i) {
 				if (((v >> (bitLen - i)) & 1) == 1)
 					++bits[i - 1];

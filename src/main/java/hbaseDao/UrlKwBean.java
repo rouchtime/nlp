@@ -1,7 +1,8 @@
 package hbaseDao;
+
 import java.util.Map;
 
-public class Bean {
+public class UrlKwBean {
     private String rk;
 
     private String family;

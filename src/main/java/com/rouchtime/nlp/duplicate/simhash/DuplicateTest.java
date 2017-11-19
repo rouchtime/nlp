@@ -95,6 +95,6 @@ public class DuplicateTest {
 	private static TokenizerFactory tokenizerFactory() {
 //		NGramTokenizerFactory factory = new NGramTokenizerFactory(2, 2);
 //		return factory;
-		return AnsjTokenizerFactory.getIstance().enableUserSelfDic(false);
+		return AnsjTokenizerFactory.getIstance().enableUserDictionary(false);
 	}
 }

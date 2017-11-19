@@ -31,10 +31,12 @@ public class CrossValidation {
 		return sb.toString();
 	}
 
+	
+	
 	public static void main(String[] args) throws IOException {
-		List<String> lines = FileUtils.readLines(new File("D:\\corpus\\duplicate\\duplicate_raws_version0\\test.txt"),
+		List<String> lines = FileUtils.readLines(new File("E:\\corpus\\duplicate\\test.txt"),
 				"utf-8");
-		List<BigInteger> simhashvalue = new ArrayList<BigInteger>();
+		List<Long> simhashvalue = new ArrayList<Long>();
 		List<Set<Integer>> articleSet = new ArrayList<Set<Integer>>();
 		// Map<Integer,String> indexMap = new HashMap<Integer,String>();
 		MapSymbolTable symtable = new MapSymbolTable();
@@ -54,12 +56,9 @@ public class CrossValidation {
 			}
 			//
 			articleSet.add(set);
-			BigInteger b = SimHashUtil.getSimHash(raw1, 64);
+			long b = simhash.simhash64(raw1);
+//			long b = SimHashUtil.getSimHashVersion2(raw1, 64);
 			simhashvalue.add(b);
-			System.out.println(out(b.longValue()));
-			if (i % 10 == 0) {
-				System.out.println(i);
-			}
 			// indexMap.put(idx, title);
 			idx++;
 		}
@@ -83,7 +82,7 @@ public class CrossValidation {
 		// "*****************************\n","utf-8",true);
 		// }
 		for (int f = 0; f <= 0; f++) {
-			for (int k = 6; k <= 6; k++) {
+			for (int k =6; k <=6; k++) {
 				int TP = 0;
 				int FP = 0;
 				int FN = 0;
