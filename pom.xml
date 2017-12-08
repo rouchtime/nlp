@@ -36,7 +36,6 @@
 	</properties>
 
 	<dependencies>
-
 		<!-- 自然语言处理和机器学习包 -->
 		<!-- libsvm -->
 		<dependency>
@@ -293,7 +292,7 @@
 			<version>0.96.2-hadoop2</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 
 		<dependency>
 			<groupId>jdk.tools</groupId>
@@ -302,6 +301,8 @@
 			<scope>system</scope>
 			<systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
 		</dependency>
+
+
 	</dependencies>
 	<build>
 		<plugins>

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ansj.recognition.impl.NatureRecognition;
 import org.apache.log4j.Logger;
 
 import com.aliasi.tokenizer.Tokenizer;
@@ -19,6 +18,9 @@ import com.rouchtime.util.Contants;
 import com.rouchtime.util.RegexUtils;
 
 import tokenizer.AnsjNlpTokenizerFactory;
+import tokenizer.RegexStopTokenzierFactory;
+import tokenizer.StopNatureTokenizerFactory;
+import tokenizer.StopWordTokenierFactory;
 
 public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 	private Logger logger = Logger.getLogger(AbstractKeyWordExtraction.class);
@@ -26,12 +28,17 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 	private TokenizerFactory TOKENIZER_FACTORY_SPLIT_SENTS = AnsjNlpTokenizerFactory.getIstance();
 	private ChineseSentenceModel SENTENCE_MODEL = SummarizationSentenceModel.INSTANCE;
 	private boolean enableWordAssemble = false;
-	List<List<List<String>>> PARAGRAPH = new ArrayList<List<List<String>>>();
+	protected List<List<List<String>>> PARAGRAPH = new ArrayList<List<List<String>>>();
 	private Map<String, String> DOC_TOKEN_NATURE_MAP = new HashMap<String, String>(); /* 保存文章的词和词性的集合 */
 	double docLength = 0.0;
+	private TokenizerFactory stopTokenizerFactory = null;
 
 	public AbstractKeyWordExtraction(TokenizerFactory tokenizerFactory) {
 		this.tokenizerFactory = tokenizerFactory;
+	}
+
+	public void setTokenizerFactory(TokenizerFactory istance) {
+		tokenizerFactory = istance;
 	}
 
 	@Override
@@ -49,21 +56,31 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		return keywords;
 	}
 
+	// 封装tokenizerFactory
+	private TokenizerFactory wrapTokenizerFactory(TokenizerFactory tokenizerFactory2) {
+		TokenizerFactory stopToken = new StopWordTokenierFactory(tokenizerFactory);
+		stopToken = new RegexStopTokenzierFactory(stopToken);
+		stopToken = new StopNatureTokenizerFactory(stopToken);
+		return stopToken;
+	}
+
 	@Override
 	public List<ScoredObject<String>> keywordsScore(String title, String article, int keywordNum) {
+		article = RegexUtils.cleanImgLabel(article);
 		DOC_TOKEN_NATURE_MAP.clear();
-		/* 分句 */
+		/* 按段落分句分词 */
 		PARAGRAPH = spiltSentence(title, article);
 		List<String> titleTokens = new ArrayList<String>();
 		List<String> bodyTokens = new ArrayList<String>();
-		for (String term : tokenizerFactory.tokenizer(title.toCharArray(), 0, title.length())) {
-			if (term.split("/")[0].length() <= 1) {
+		stopTokenizerFactory = wrapTokenizerFactory(tokenizerFactory);
+		for (String term : stopTokenizerFactory.tokenizer(title.toCharArray(), 0, title.length())) {
+			if (term.split(Contants.SLASH)[0].length() <= 1) {
 				continue;
 			}
 			titleTokens.add(term);
 		}
-		for (String term : tokenizerFactory.tokenizer(article.toCharArray(), 0, article.length())) {
-			if (term.split("/")[0].length() <= 1) {
+		for (String term : stopTokenizerFactory.tokenizer(article.toCharArray(), 0, article.length())) {
+			if (term.split(Contants.SLASH)[0].length() <= 1) {
 				continue;
 			}
 			bodyTokens.add(term);
@@ -73,24 +90,33 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 		/* 是否启动词组合 */
 		if (enableWordAssemble) {
 			String text = RegexUtils.cleanSpecialWord(title + "," + article);
-			for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(text.toCharArray(), 0, text.length())) {
-				if (token.equals("")) {
-					continue;
-				}
-				if(token.split(Contants.SLASH).length != 2) {
-					continue;
-				}
-				String word = token.split(Contants.SLASH)[0];
-				if(word.indexOf("】")!=-1|| word.indexOf("【")!=-1) {
-					DOC_TOKEN_NATURE_MAP.put(word.replaceAll("】|【", ""), "u");
-					continue;
-				}
-				DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
-			}
+			configNatureMap(text);
 			ObjectToDoubleMap<String> assembleCandiate = wordAssemble(sortedList, PARAGRAPH);
 			sortedList = assembleCandiate.scoredObjectsOrderedByValueList();
 		}
 		return sortedList.subList(0, Math.min(sortedList.size(), keywordNum));
+	}
+
+	/**
+	 * 配置不去掉任何文本的词性配置表
+	 * 
+	 * @param text
+	 */
+	private void configNatureMap(String text) {
+		for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(text.toCharArray(), 0, text.length())) {
+			if (token.equals("")) {
+				continue;
+			}
+			if (token.split(Contants.SLASH).length != 2) {
+				continue;
+			}
+			String word = token.split(Contants.SLASH)[0];
+			if (word.indexOf("】") != -1 || word.indexOf("【") != -1) {
+				DOC_TOKEN_NATURE_MAP.put(word.replaceAll("】|【", ""), "u");
+				continue;
+			}
+			DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
+		}
 	}
 
 	/**
@@ -197,7 +223,7 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			}
 			if (i == 0) {
 				String after = sent.get(i + 1);
-				if(after.length() <= 1) {
+				if (after.length() <= 1) {
 					continue;
 				}
 				String after_nature = DOC_TOKEN_NATURE_MAP.get(after);
@@ -216,7 +242,7 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			}
 			if (i == sent.size() - 1) {
 				String before = sent.get(i - 1);
-				if(before.length() <= 1) {
+				if (before.length() <= 1) {
 					continue;
 				}
 				String before_nature = DOC_TOKEN_NATURE_MAP.get(before);
@@ -244,7 +270,7 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			if ((now_nature.charAt(0) == 'a' && after_nature.charAt(0) == 'n')
 					|| (now_nature.charAt(0) == 'n' && after_nature.charAt(0) == 'n')) {
 				if (map.get(after) == null) {
-					if(after.length() <= 1) {
+					if (after.length() <= 1) {
 						continue;
 					}
 					candidate.increment(now + after, map.get(now));
@@ -256,7 +282,7 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			if ((before_nature.charAt(0) == 'n' && now_nature.charAt(0) == 'n')
 					|| (before_nature.charAt(0) == 'a' && now_nature.charAt(0) == 'n')) {
 				if (map.get(before) == null) {
-					if(before.length() <= 1) {
+					if (before.length() <= 1) {
 						continue;
 					}
 					candidate.increment(before + now, map.get(now));
@@ -275,13 +301,13 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 					candidate.increment(before + now + after, map.get(before) + map.get(now) + map.get(after));
 				}
 				if (map.get(before) != null && map.get(after) == null) {
-					if(after.length() <= 1) {
+					if (after.length() <= 1) {
 						continue;
 					}
 					candidate.increment(before + now + after, map.get(before) + map.get(now));
 				}
 				if (map.get(before) == null && map.get(after) != null) {
-					if(before.length() <= 1) {
+					if (before.length() <= 1) {
 						continue;
 					}
 					candidate.increment(before + now + after, map.get(now) + map.get(after));
@@ -337,12 +363,11 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 	private List<List<List<String>>> spiltSentence(String title, String document) {
 		List<List<List<String>>> paragraph = new ArrayList<List<List<String>>>();
 		List<String> titleToken = new ArrayList<String>();
-		for (String token : TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(title.toCharArray(), 0, title.length())) {
-			if(token.split(Contants.SLASH)[0].indexOf("】")!=-1) {
+		for (String token : tokenizerFactory.tokenizer(title.toCharArray(), 0, title.length())) {
+			if (token.split(Contants.SLASH)[0].indexOf("】") != -1) {
 				continue;
 			}
 			titleToken.add(token.split(Contants.SLASH)[0]);
-			DOC_TOKEN_NATURE_MAP.put(token.split(Contants.SLASH)[0], token.split(Contants.SLASH)[1]);
 		}
 		List<List<String>> titlePara = new ArrayList<List<String>>();
 		titlePara.add(titleToken);
@@ -355,7 +380,7 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 			line = RegexUtils.cleanSpecialWord(line.trim());
 			if (line.length() == 0)
 				continue;
-			Tokenizer tokenizer = TOKENIZER_FACTORY_SPLIT_SENTS.tokenizer(line.toCharArray(), 0, line.length());
+			Tokenizer tokenizer = tokenizerFactory.tokenizer(line.toCharArray(), 0, line.length());
 			String[] tokens = tokenizer.tokenize();
 			int[] sentenceBoundaries;
 			try {
@@ -364,7 +389,13 @@ public abstract class AbstractKeyWordExtraction implements KeyWordExtraction {
 					System.out.println("未发现句子边界！");
 					continue;
 				}
-			} catch(Exception e) {
+			} catch (Exception e) {
+				StringBuffer sb = new StringBuffer();
+				for (int i = 0; i < tokens.length; i++) {
+					sb.append(tokens[i]).append(" ");
+				}
+				logger.error(String.format("%s", sb.toString()));
+				System.out.println(tokens);
 				continue;
 			}
 			int sentStartTok = 0;

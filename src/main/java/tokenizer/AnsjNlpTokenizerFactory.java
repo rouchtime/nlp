@@ -1,6 +1,4 @@
 package tokenizer;
-
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +7,6 @@ import org.ansj.domain.Result;
 import org.ansj.domain.Term;
 import org.ansj.library.DicLibrary;
 import org.ansj.splitWord.analysis.NlpAnalysis;
-
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
 
@@ -18,14 +15,9 @@ public class AnsjNlpTokenizerFactory implements Serializable, TokenizerFactory {
 	 * 
 	 */
 	private static final long serialVersionUID = 5850115535694987216L;
-	private String modelPath;
 	private DicLibrary dicLibrary;
 
 	private AnsjNlpTokenizerFactory() {
-//		String pPath = AnsjNlpTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-//		modelPath = new File(pPath).getParent() + "/library/dictionary_20170418_ansj.dic";
-//		dicLibrary = new DicLibrary();
-//		dicLibrary.put("userdefine", modelPath);
 	}
 
 	private static volatile AnsjNlpTokenizerFactory instance;
@@ -54,10 +46,14 @@ public class AnsjNlpTokenizerFactory implements Serializable, TokenizerFactory {
 		@SuppressWarnings("static-access")
 		public AnsjNlpTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
-//			Result result = NlpAnalysis.parse(text, dicLibrary.get("userdefine"));
-			Result result = NlpAnalysis.parse(text);
+			Result result = null;
+			result = NlpAnalysis.parse(text);
 			for (Term term : result.getTerms()) {
+//				if (term.getName().length() <= 1) {
+//					continue;
+//				}
 				parse.add(term.getName() + "/" + term.getNatureStr());
+
 			}
 		}
 

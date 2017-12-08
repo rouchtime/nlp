@@ -1,6 +1,9 @@
 package com.rouchtime.nlp.keyword;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+
+import com.rouchtime.util.LoadConf;
 
 /**
  * 各种初始化
@@ -34,13 +39,23 @@ public class DictionaryResource {
 	 */
 	private List<String> WORDLIST = new ArrayList<String>();
 	private int W2VLENGTH = 200;
-	
+
+	LoadConf loadConf;
 	/**
 	 * 词IDF值
 	 */
 	private Map<String, Double> IDFMAP = new HashMap<String, Double>();
 
 	private DictionaryResource() {
+		try {
+			loadConf = new LoadConf();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		long s = System.currentTimeMillis();
 		logger.info("init w2v, please waiting ...");
 		initW2V();
@@ -70,10 +85,12 @@ public class DictionaryResource {
 
 
 	private void initW2V() {
-		InputStream in = DictionaryResource.class.getClassLoader().getResourceAsStream("w2v");
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		BufferedReader br = null;
+		InputStream in = null;
 		String line;
 		try {
+			in = new FileInputStream(new File(loadConf.getProperty("dic") + "w2v"));
+			br = new BufferedReader(new InputStreamReader(in));
 			line = br.readLine();
 			String[] splits = null;
 			int i = 0;
@@ -93,7 +110,10 @@ public class DictionaryResource {
 				line = br.readLine();
 				i++;
 			}
-		} catch (IOException e) {
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			if (br != null) {
@@ -114,10 +134,12 @@ public class DictionaryResource {
 	}
 
 	private void initIDF() {
-		InputStream in = DictionaryResource.class.getClassLoader().getResourceAsStream("IDF_20170418_new.txt");
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		BufferedReader br = null;
+		InputStream in = null;
 		String line;
 		try {
+			in = new FileInputStream(new File(loadConf.getProperty("dic") + "IDF_20170418_new.txt"));
+			br = new BufferedReader(new InputStreamReader(in));
 			line = br.readLine();
 			String[] splits = null;
 			while (line != null) {

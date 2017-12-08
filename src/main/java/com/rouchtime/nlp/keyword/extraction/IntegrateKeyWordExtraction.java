@@ -2,25 +2,24 @@ package com.rouchtime.nlp.keyword.extraction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.ObjectToDoubleMap;
 import com.aliasi.util.ScoredObject;
 import com.rouchtime.nlp.keyword.DictionaryResource;
 import com.rouchtime.nlp.keyword.SynonymMerge;
 import com.rouchtime.nlp.keyword.Token;
 import com.rouchtime.nlp.keyword.lexicalChain.LexicalChainMaxSim;
-import com.rouchtime.nlp.keyword.similarity.Word2VectorWordSimiarity;
+import com.rouchtime.nlp.keyword.similarity.CiLinWordSimilarity;
 import com.rouchtime.nlp.keyword.similarity.WordSimiarity;
 import com.rouchtime.util.Contants;
 
-import tokenizer.AnsjNlpTokenizerFactory;
+import tokenizer.AnsjNlpSelfDicTokenzierFactory;
 
 /**
  * 混合关键词提取算法
@@ -33,36 +32,24 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 	private WordSimiarity wordSimiarity;
 	private Map<String, Double> idfMap;
 	private LexicalChainMaxSim lexicalChain;
-	
-	/**
-	 * 
-	 * @param tokenizerFactory 分词器工厂，实例出单例的分词器
-	 * @param wordSimiarity 相似度计算方法，实例出单例的相似度
-	 * <p>
-	 * 1、根据word2vector的相似度；
-	 * {@link #Word2VectorWordSimiarity}
-	 * </p>
-	 * <p>
-	 * 2、根据同义词词林的相似度
-	 * {@link #CiLinWordSimilarity}
-	 * </p>
-	 */
-	public IntegrateKeyWordExtraction(TokenizerFactory tokenizerFactory, WordSimiarity wordSimiarity) {
-		super(tokenizerFactory);
-		this.wordSimiarity = wordSimiarity;
-		idfMap = DictionaryResource.getInstance().getIDFMAP();
-	}
 
 	/**
 	 * 无参构造器默认使用ansj的NLP分词器，未用用户自定义词典，词的相似度使用word2Vector相似度
 	 */
-	public IntegrateKeyWordExtraction() {
-		super(AnsjNlpTokenizerFactory.getIstance());
-		this.wordSimiarity = Word2VectorWordSimiarity.getInstance();
+	private IntegrateKeyWordExtraction() {
+		super(AnsjNlpSelfDicTokenzierFactory.getIstance());
+		this.wordSimiarity = CiLinWordSimilarity.getInstance();
 		idfMap = DictionaryResource.getInstance().getIDFMAP();
 	}
 
-	
+	public static IntegrateKeyWordExtraction getInstance() {
+		return SingletonHolder.instance;
+	}
+
+	private static class SingletonHolder {
+		private static final IntegrateKeyWordExtraction instance = new IntegrateKeyWordExtraction();
+	}
+
 	@Override
 	ObjectToDoubleMap<String> modifyKeywordsSort(List<String> titleTokens, List<String> bodyTokens) {
 		Map<String, Token> tokenMap = wordProcess(titleTokens, bodyTokens);
@@ -74,7 +61,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		/* 同义词合并后的tf值 */
 		Map<String, Double> mergedTF = SynonymMerge.mergeTFBySynonym(tfMap, wordSimiarity);
 		int size = mergedTF.keySet().size();
-
+		
 		double[] word_area_weight = new double[size];
 		double[] word_span_weight = new double[size];
 		double[] word_firstpos_weight = new double[size];
@@ -82,33 +69,49 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		double[] word_tfidf_weight = new double[size];
 		double[] word_lexical_weight = new double[size];
 		double[] word_textRank_weight = new double[size];
+		double[] weight = new double[size];
 		try {
+
 			/* 词的区域权重设置 */
 			wordAreaWeightCalcultate(tokenMap, mergedTF, word_area_weight);
+			weight = linearCombination(weight, word_area_weight, 1.2);
+			logger.debug(tmpPrint(mergedTF, weight, word_area_weight, "词位置"));
 
 			/* 词的覆盖区域权重，（第一次出现和最后一次出现的范围/总词数） */
 			wordSpanWeightCalculate(tokenMap, mergedTF, word_span_weight);
+			weight = linearCombination(weight, word_span_weight, 1.0);
+			logger.debug(tmpPrint(mergedTF, weight, word_span_weight, "词覆盖"));
 
 			/* 词出现首次的位置在文章中的区域，越在开头的和结尾的词越重要 */
 			wordFirstPosWeight(tokenMap, mergedTF, word_firstpos_weight);
+			weight = linearCombination(weight, word_firstpos_weight, 1.0);
+			logger.debug(tmpPrint(mergedTF, weight, word_firstpos_weight, "首次出现位置"));
 
 			/* 词性权重 */
 			wordPOSWeight(tokenMap, mergedTF, word_POS_weight);
+			weight = linearCombination(weight, word_POS_weight, 1.0);
+			logger.debug(tmpPrint(mergedTF, weight, word_POS_weight, "词性权重"));
 
 			/* tfidf权重设置 */
 			tfidfWeightCalcultate(mergedTF, word_tfidf_weight);
+			weight = linearCombination(weight, word_tfidf_weight, 1.5);
+			logger.debug(tmpPrint(mergedTF, weight, word_tfidf_weight, "tfidf"));
 
 			/* 词汇链权重设置 */
 			wordLexicalWeight(tokenMap, mergedTF, word_lexical_weight);
+			weight = linearCombination(weight, word_lexical_weight, 1.5);
+			logger.debug(tmpPrint(mergedTF, weight, word_lexical_weight, "词汇链"));
 
-			/*多窗口textRank权重设置*/
+			/* 多窗口textRank权重设置 */
 			textRankWeight(titleTokens, bodyTokens, mergedTF, word_textRank_weight);
-
+			weight = linearCombination(weight, word_textRank_weight, 0.5);
+			logger.debug(tmpPrint(mergedTF, weight, word_textRank_weight, "textrank"));
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
-		double[] weight = weightCombine(word_area_weight, word_span_weight, word_firstpos_weight, word_POS_weight,
-				word_tfidf_weight, word_lexical_weight, word_textRank_weight, size);
+		// double[] weight = weightCombine(word_area_weight, word_span_weight,
+		// word_firstpos_weight, word_POS_weight,
+		// word_tfidf_weight, word_lexical_weight, word_textRank_weight, size);
 		ObjectToDoubleMap<String> weightMap = new ObjectToDoubleMap<>();
 		int index = 0;
 		for (String word : mergedTF.keySet()) {
@@ -116,7 +119,19 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		}
 		return weightMap;
 	}
-	
+
+	private String tmpPrint(Map<String, Double> map, double[] values, double[] add, String name) {
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for (Entry<String, Double> entry : map.entrySet()) {
+			sb.append(entry.getKey()).append("\t").append(values[i]).append("\t").append(name).append(":")
+					.append(add[i]).append("\t");
+			i++;
+		}
+		sb.append("\n");
+		return sb.toString();
+	}
+
 	private void textRankWeight(List<String> titleTokens, List<String> bodyTokens, Map<String, Double> mergedTF,
 			double[] word_textRank_weight) throws Exception {
 		TextRankWithMultiWinExtraction textRank = new TextRankWithMultiWinExtraction(2, 10, super.tokenizerFactory);
@@ -126,12 +141,12 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 			scoreMap.put(score.getObject(), score.score());
 		}
 		if (list.size() < word_textRank_weight.length) {
-			logger.warn(String.format("TextRank:size is not equal %d<%d", list.size(),word_textRank_weight.length));
+			logger.warn(String.format("TextRank:size is not equal %d<%d", list.size(), word_textRank_weight.length));
 		}
 		int index = 0;
 		for (String word : mergedTF.keySet()) {
 			Double value = scoreMap.get(word);
-			if(value.isNaN()) {
+			if (value.isNaN()) {
 				word_textRank_weight[index] = 0.0;
 			} else {
 				word_textRank_weight[index] = scoreMap.get(word);
@@ -141,25 +156,39 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		normalize(word_textRank_weight);
 	}
 
+	private double[] linearCombination(double[] sum, double[] add, double weight) {
+		for (int i = 0; i < sum.length; i++) {
+			sum[i] += (add[i] * weight);
+		}
+		return sum;
+	}
+
 	private double[] weightCombine(double[] word_area_weight, double[] word_span_weight, double[] word_firstpos_weight,
 			double[] word_POS_weight, double[] word_tfidf_weight, double[] word_lexical_weight,
 			double[] word_textRank_weight, int size) {
 		double[] weight = new double[size];
 		for (int i = 0; i < size; i++) {
 			weight[i] = word_area_weight[i] * 1.2 + word_span_weight[i] * 1.0 + word_firstpos_weight[i] * 1.0
-					+ word_POS_weight[i] * 1.0 + word_tfidf_weight[i] * 0.5 + word_lexical_weight[i] * 1.5
+					+ word_POS_weight[i] * 1.0 + word_tfidf_weight[i] * 2.0 + word_lexical_weight[i] * 3
 					+ word_textRank_weight[i] * 0.5;
 		}
 		return weight;
 	}
 
 	private double[] normalize(double[] values) {
-		double sum = 0.0;
-		for (double value : values) {
-			sum += value;
+		double max = values[0], min = values[0];
+		for (int i = 0; i < values.length; i++) {
+			if (values[i] > max) {
+				max = values[i];
+			}
 		}
 		for (int i = 0; i < values.length; i++) {
-			values[i] = values[i] / sum;
+			if (values[i] < min) {
+				min = values[i];
+			}
+		}
+		for (int i = 0; i < values.length; i++) {
+			values[i] = 0.1f + (values[i] - min) * (0.9f - 0.1f) / (max - min);
 		}
 		return values;
 	}
@@ -228,23 +257,63 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		int index = 0;
 		for (String word : mergedTF.keySet()) {
 			String nature = tokenMap.get(word).getNature();
-			if (nature.charAt(0) == 'n') {
-				word_POS_weight[index++] = 0.8;
+			if (nature.equals("nr")) {
+				word_POS_weight[index++] = 3.0;
 				continue;
 			}
-			if (nature.charAt(0) == 'g') {
-				word_POS_weight[index++] = 0.8;
+			if (nature.equals("nrf")) {
+				word_POS_weight[index++] = 3.0;
 				continue;
 			}
-			if (nature.charAt(0) == 'i') {
-				word_POS_weight[index++] = 0.8;
+			if (nature.equals("nw")) {
+				word_POS_weight[index++] = 3.0;
 				continue;
 			}
-			if (nature.charAt(0) == 'a') {
-				word_POS_weight[index++] = 0.3;
+			if (nature.equals("nt")) {
+				word_POS_weight[index++] = 2.0;
 				continue;
 			}
-			word_POS_weight[index++] = 0;
+			if (nature.equals("nz")) {
+				word_POS_weight[index++] = 2.8;
+				continue;
+			}
+			if (nature.equals("ns")) {
+				word_POS_weight[index++] = 2.5;
+				continue;
+			}
+			if (nature.equals("nsf")) {
+				word_POS_weight[index++] = 3.0;
+				continue;
+			}
+			if (nature.equals("nl")) {
+				word_POS_weight[index++] = 1.0;
+				continue;
+			}
+			if (nature.equals("n")) {
+				word_POS_weight[index++] = 2.5;
+				continue;
+			}
+			if (nature.equals("g")) {
+				word_POS_weight[index++] = 4.0;
+				continue;
+			}
+			// if (nature.charAt(0) == 'n') {
+			// word_POS_weight[index++] = 0.8;
+			// continue;
+			// }
+			// if (nature.charAt(0) == 'g') {
+			// word_POS_weight[index++] = 0.8;
+			// continue;
+			// }
+			// if (nature.charAt(0) == 'i') {
+			// word_POS_weight[index++] = 0.8;
+			// continue;
+			// }
+			// if (nature.charAt(0) == 'a') {
+			// word_POS_weight[index++] = 0.1;
+			// continue;
+			// }
+			word_POS_weight[index++] = 0.1;
 		}
 		normalize(word_POS_weight);
 	}
@@ -284,7 +353,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		for (String word : mergedTF.keySet()) {
 			switch (tokenMap.get(word).getArea()) {
 			case TITLE:
-				word_area_weight[index] = 3;
+				word_area_weight[index] = 5;
 				break;
 			case BODY:
 				word_area_weight[index] = 0.5;
@@ -311,14 +380,18 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		if (mergedTF.size() != word_tfidf_weight.length) {
 			throw new Exception("TFIDF:size is not equal!");
 		}
-		double sumTfIdf = 0.0;
+		double sumTf = 0.0;
+		for(String word : mergedTF.keySet()) {
+			sumTf += mergedTF.get(word);
+		}
+		double sumTfIdf = 0.0; 
 		for (String word : mergedTF.keySet()) {
 			Double idf = idfMap.get(word);
 			if (idf == null) {
-				double value = mergedTF.get(word) * 0.01;
+				double value = (mergedTF.get(word) / sumTf) * 0.01;
 				sumTfIdf += Math.pow(value, 2.0);
 			} else {
-				double value = mergedTF.get(word) * idf;
+				double value = (mergedTF.get(word) / sumTf) * idf;
 				sumTfIdf += Math.pow(value, 2.0);
 			}
 		}
@@ -326,13 +399,14 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 		for (String word : mergedTF.keySet()) {
 			Double idf = idfMap.get(word);
 			if (idf == null) {
-				double value = mergedTF.get(word) * 0.01;
+				double value = (mergedTF.get(word) / sumTf) * 0.01;
 				word_tfidf_weight[index++] = value / Math.sqrt(sumTfIdf);
 			} else {
-				double value = mergedTF.get(word) * idf;
+				double value = (mergedTF.get(word) / sumTf) * idf;
 				word_tfidf_weight[index++] = value / Math.sqrt(sumTfIdf);
 			}
 		}
+		normalize(word_tfidf_weight);
 	}
 
 	private Map<String, Token> wordProcess(List<String> titleTokens, List<String> bodyTokens) {
@@ -353,8 +427,8 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 			} else {
 				int numInSents = 0;
 				for (List<List<String>> paragraph : PARAGRAPH) {
-					for(List<String> sent : paragraph) {
-						for(String token : sent) {
+					for (List<String> sent : paragraph) {
+						for (String token : sent) {
 							if (token.equals(word)) {
 								numInSents++;
 								break;
@@ -386,8 +460,8 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 			} else {
 				int numInSents = 0;
 				for (List<List<String>> paragraph : PARAGRAPH) {
-					for(List<String> sent : paragraph) {
-						for(String token : sent) {
+					for (List<String> sent : paragraph) {
+						for (String token : sent) {
 							if (token.equals(word)) {
 								numInSents++;
 								continue;
@@ -395,7 +469,7 @@ public class IntegrateKeyWordExtraction extends AbstractKeyWordExtraction {
 						}
 					}
 				}
-				Token token = new Token(index++, word, pos, Contants.WordArea.TITLE, position - position, position,
+				Token token = new Token(index++, word, pos, Contants.WordArea.BODY, position - position, position,
 						position);
 				token.setTokenExistsSentsNum(numInSents);
 				token.setTfIndoc(1.0);

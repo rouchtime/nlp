@@ -144,6 +144,15 @@ public class Word2VectorWordSimiarity implements WordSimiarity{
 
 	};
 
+	
+	private static Comparator<Integer> aascComparator = new Comparator<Integer>() {
+		@Override
+		public int compare(Integer o1, Integer o2) {
+			return o1.compareTo(o2);
+		}
+
+	};
+	
 	/**
 	 * 降序比较器
 	 */
@@ -177,5 +186,38 @@ public class Word2VectorWordSimiarity implements WordSimiarity{
 			sum_j += Math.pow(v2[k], 2.0);
 		}
 		return sum_fenzi / (Math.sqrt(sum_i) * Math.sqrt(sum_j));
+	}
+	
+	public static void aa() {
+		
+	}
+	
+	public static void main(String[] args) {
+		Queue<Integer> integerPriorityQueue = new PriorityQueue<Integer>(
+				10, aascComparator);
+		List<Integer> list = new ArrayList<Integer>();
+		list.add(2);
+		list.add(1);
+		list.add(88);
+		list.add(12);
+		list.add(5456);
+		list.add(10);
+		list.add(83);
+		list.add(12);
+		list.add(76);
+		list.add(1234);
+		
+		for(int i: list) {
+			if (integerPriorityQueue.size() < 5) {
+				integerPriorityQueue.add(i);
+			} else {
+				int peek = integerPriorityQueue.peek();
+				if ((i - peek) > 0) { // 将新元素与当前堆顶元素比较，保留较小的元素
+					integerPriorityQueue.poll();
+					integerPriorityQueue.add(i);
+				}
+			}
+		}
+		System.out.println(integerPriorityQueue);
 	}
 }

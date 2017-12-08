@@ -12,29 +12,35 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.aliasi.tokenizer.Tokenizer;
 import com.aliasi.tokenizer.TokenizerFactory;
-
+import com.rouchtime.util.LoadConf;
 public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 	private static final long serialVersionUID = 572943028477125945L;
 	private String modelPath;
 	private DicLibrary dicLibrary;
-
+	LoadConf loadConf; 
 	@SuppressWarnings("static-access")
 	private AnsjTokenizerFactory() {
 
 	}
+	@SuppressWarnings("static-access")
 	private void initSelfDic() {
 		try {
+			loadConf = new LoadConf();
 			// String pPath =
 			// AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 			// String path =
 			// this.getClass().getClassLoader().getResource("library/dictionary_20170418_ansj.dic").getPath();
-			ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();
-			URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");
-			String path = resource.getPath();
+//			ClassLoader classLoader = AnsjTokenizerFactory.class.getClassLoader();
+//			URL resource = classLoader.getResource("library/dictionary_20170418_ansj.dic");
+//			String path = resource.getPath();
 			// modelPath = new File(pPath).getParent() +
 			// "library/dictionary_20170418_ansj.dic";
 			dicLibrary = new DicLibrary();
-			dicLibrary.put("userdefine", path);
+			dicLibrary.put("userdefine", loadConf.getProperty("dic") + "dictionary_20170418_ansj.dic");
+//			String pPath = AnsjTokenizerFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+//			modelPath = new File(pPath).getParent() + "/library/dictionary_20170418_ansj.dic";
+//			dicLibrary = new DicLibrary();
+//			dicLibrary.put("userdefine", modelPath);
 		} catch (Exception e) {
 			ExceptionUtils.getRootCauseMessage(e);
 		}
@@ -45,7 +51,6 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 	@Override
 	public Tokenizer tokenizer(char[] ch, int start, int length) {
-
 		return new AnsjTokenizer(ch, start, length);
 	}
 
@@ -65,11 +70,11 @@ public class AnsjTokenizerFactory implements Serializable, TokenizerFactory {
 
 		private List<String> parse = new ArrayList<String>();
 		private int currentPos = -1;
+		@SuppressWarnings("static-access")
 		public AnsjTokenizer(char[] ch, int start, int length) {
 			String text = String.valueOf(ch);
 			Result result = null;
 			if (enableUserDictionary) {
-
 				result = ToAnalysis.parse(text, dicLibrary.get("userdefine"));
 			} else {
 				result = ToAnalysis.parse(text);

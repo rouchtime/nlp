@@ -1,6 +1,8 @@
 package com.rouchtime.nlp.keyword.similarity;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;////
@@ -8,18 +10,23 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+
+import com.rouchtime.util.LoadConf;
+
 /**
  * {@link #CiLinWordSimilarity}
+ * 
  * @author Admin
  *
  */
-public class CiLinWordSimilarity implements WordSimiarity{
+public class CiLinWordSimilarity implements WordSimiarity {
 	private Logger logger = Logger.getLogger(CiLinWordSimilarity.class);
 	private HashMap<String, List<String>> keyWord_Identifier_HashMap;// <关键词，编号List集合>哈希
 	private HashMap<String, Integer> first_KeyWord_Depth_HashMap;// <第一层编号，深度>哈希
 	private HashMap<String, Integer> second_KeyWord_Depth_HashMap;// <前二层编号，深度>哈希
 	private HashMap<String, Integer> third_KeyWord_Depth_HashMap;// <前三层编号，深度>哈希
 	private HashMap<String, Integer> fourth_KeyWord_Depth_HashMap;// <前四层编号，深度>哈希
+	private LoadConf loadConf;
 	// public HashMap<String, HashSet<String>> ciLin_Sort_keyWord_HashMap = new
 	// HashMap<String, HashSet<String>>();//<(同义词)编号，关键词Set集合>哈希
 
@@ -29,6 +36,12 @@ public class CiLinWordSimilarity implements WordSimiarity{
 		second_KeyWord_Depth_HashMap = new HashMap<String, Integer>();
 		third_KeyWord_Depth_HashMap = new HashMap<String, Integer>();
 		fourth_KeyWord_Depth_HashMap = new HashMap<String, Integer>();
+		try {
+			loadConf = new LoadConf();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		initCiLin();
 	}
 
@@ -51,7 +64,7 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			logger.info("init cilin dictionary, please waiting ...");
 			// 初始化<关键词， 编号set>哈希
 			inFile = new BufferedReader(new InputStreamReader(
-					CiLinWordSimilarity.class.getClassLoader().getResourceAsStream("cilin/keyWord_Identifier_HashMap.txt"),
+					new FileInputStream(new File(loadConf.getProperty("dic") + "cilin/keyWord_Identifier_HashMap.txt")),
 					"utf-8"));// 读取文本
 			while ((str = inFile.readLine()) != null) {
 				strs = str.split(" ");
@@ -64,8 +77,10 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			// 初始化<第一层编号，高度>哈希
 			inFile.close();
 			inFile = new BufferedReader(new InputStreamReader(
-					CiLinWordSimilarity.class.getClassLoader().getResourceAsStream("cilin/first_KeyWord_Depth_HashMap.txt"),
+					new FileInputStream(new File(loadConf.getProperty("dic") + "cilin/first_KeyWord_Depth_HashMap.txt")),
 					"utf-8"));// 读取文本
+//			inFile = new BufferedReader(new InputStreamReader(CiLinWordSimilarity.class.getClassLoader()
+//					.getResourceAsStream("cilin/first_KeyWord_Depth_HashMap.txt"), "utf-8"));// 读取文本
 			while ((str = inFile.readLine()) != null) {
 				strs = str.split(" ");
 				first_KeyWord_Depth_HashMap.put(strs[0], Integer.valueOf(strs[1]));
@@ -74,8 +89,10 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			// 初始化<前二层编号，高度>哈希
 			inFile.close();
 			inFile = new BufferedReader(new InputStreamReader(
-					CiLinWordSimilarity.class.getClassLoader().getResourceAsStream("cilin/second_KeyWord_Depth_HashMap.txt"),
+					new FileInputStream(new File(loadConf.getProperty("dic") + "cilin/second_KeyWord_Depth_HashMap.txt")),
 					"utf-8"));// 读取文本
+//			inFile = new BufferedReader(new InputStreamReader(CiLinWordSimilarity.class.getClassLoader()
+//					.getResourceAsStream("cilin/second_KeyWord_Depth_HashMap.txt"), "utf-8"));// 读取文本
 			while ((str = inFile.readLine()) != null) {
 				strs = str.split(" ");
 				second_KeyWord_Depth_HashMap.put(strs[0], Integer.valueOf(strs[1]));
@@ -84,8 +101,10 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			// 初始化<前三层编号，高度>哈希
 			inFile.close();
 			inFile = new BufferedReader(new InputStreamReader(
-					CiLinWordSimilarity.class.getClassLoader().getResourceAsStream("cilin/third_KeyWord_Depth_HashMap.txt"),
+					new FileInputStream(new File(loadConf.getProperty("dic") + "cilin/third_KeyWord_Depth_HashMap.txt")),
 					"utf-8"));// 读取文本
+//			inFile = new BufferedReader(new InputStreamReader(CiLinWordSimilarity.class.getClassLoader()
+//					.getResourceAsStream("cilin/third_KeyWord_Depth_HashMap.txt"), "utf-8"));// 读取文本
 			while ((str = inFile.readLine()) != null) {
 				strs = str.split(" ");
 				third_KeyWord_Depth_HashMap.put(strs[0], Integer.valueOf(strs[1]));
@@ -94,8 +113,10 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			// 初始化<前四层编号，高度>哈希
 			inFile.close();
 			inFile = new BufferedReader(new InputStreamReader(
-					CiLinWordSimilarity.class.getClassLoader().getResourceAsStream("cilin/fourth_KeyWord_Depth_HashMap.txt"),
+					new FileInputStream(new File(loadConf.getProperty("dic") + "cilin/fourth_KeyWord_Depth_HashMap.txt")),
 					"utf-8"));// 读取文本
+//			inFile = new BufferedReader(new InputStreamReader(CiLinWordSimilarity.class.getClassLoader()
+//					.getResourceAsStream("cilin/fourth_KeyWord_Depth_HashMap.txt"), "utf-8"));// 读取文本
 			while ((str = inFile.readLine()) != null) {
 				strs = str.split(" ");
 				fourth_KeyWord_Depth_HashMap.put(strs[0], Integer.valueOf(strs[1]));
@@ -104,7 +125,7 @@ public class CiLinWordSimilarity implements WordSimiarity{
 
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally {
+		} finally {
 			if (inFile != null) {
 				try {
 					inFile.close();
@@ -139,7 +160,7 @@ public class CiLinWordSimilarity implements WordSimiarity{
 			j = 0;
 			while (j < identifierList2.size()) {
 				similarity = getIdentifierSimilarity(identifierList1.get(i), identifierList2.get(j));
-				logger.debug(identifierList1.get(i) + "  " + identifierList2.get(j) + "  " + similarity);
+//				logger.debug(identifierList1.get(i) + "  " + identifierList2.get(j) + "  " + similarity);
 				if (similarity > maxSimilarity)
 					maxSimilarity = similarity;
 				if (maxSimilarity == 1.0)
@@ -190,7 +211,7 @@ public class CiLinWordSimilarity implements WordSimiarity{
 
 	@Override
 	public boolean isExistWord(String word) {
-		if(keyWord_Identifier_HashMap.get(word) == null) {
+		if (keyWord_Identifier_HashMap.get(word) == null) {
 			return false;
 		}
 		return true;

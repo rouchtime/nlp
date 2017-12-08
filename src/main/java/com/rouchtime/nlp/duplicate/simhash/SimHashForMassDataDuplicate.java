@@ -71,12 +71,22 @@ public class SimHashForMassDataDuplicate {
 	}
 
 	public boolean add(String newskey, String doc) {
+		String urlKey = "";
+		try {
+			urlKey = String.valueOf((Long.MAX_VALUE - Long.parseLong(newskey)));
+		} catch (NumberFormatException e) {
+			System.err.println(String.format("NewsKey convert Long Failed! newsKey = %s", newskey));
+			return false;
+		}
+		/* 获得64位的指纹码 */
 		long simvalue = sft.getFingerPrint(doc, 64);
+		/* 将64位的指纹码分段做key */
 		long[] keys = splitFingerPrint(simvalue);
 		List<Long> tmpKeyList = new ArrayList<Long>();
 		for (long k : keys) {
 			tmpKeyList.add(k);
 		}
+
 		try {
 			List<SimHashBean> simhashBeanList = tbSimHashQueryDao.getListBean(tmpKeyList, zk);
 			if (tmpKeyList.size() != simhashBeanList.size()) {
@@ -85,25 +95,19 @@ public class SimHashForMassDataDuplicate {
 				return false;
 			}
 			for (int i = 0; i < simhashBeanList.size(); i++) {
-				if (simhashBeanList.get(i) == null) {
-					SimHashBean bean = new SimHashBean();
+				SimHashBean bean = simhashBeanList.get(i);
+				if (bean == null) {
+					bean = new SimHashBean();
 					bean.setFamily(columFamliy);
 					bean.setRk(tmpKeyList.get(i));
 					Map<String, Long> map = new HashMap<>();
-					try {
-						map.put(String.valueOf((Long.MAX_VALUE - Long.parseLong(newskey))), simvalue);
-						bean.setMap(map);
-						simhashBeanList.set(i, bean);
-					} catch(NumberFormatException e) {
-						continue;
-					}
+					map.put(urlKey, simvalue);
+					bean.setMap(map);
+					simhashBeanList.set(i, bean);
 				} else {
-					Map<String,Long> resultMap = simhashBeanList.get(i).getMap();
-					try {
-						resultMap.put(String.valueOf((Long.MAX_VALUE - Long.parseLong(newskey))), simvalue);
-					} catch(NumberFormatException e) {
-						continue;
-					}
+					Map<String, Long> resultMap = bean.getMap();
+					resultMap.put(urlKey, simvalue);
+					
 				}
 			}
 			tbSimHashQueryDao.putListSimhash(simhashBeanList, zk);
@@ -115,44 +119,45 @@ public class SimHashForMassDataDuplicate {
 		}
 		return true;
 	}
-	
+
 	public List<String> select(String doc) {
+		/* 获得64位的指纹码 */
 		long simvalue = sft.getFingerPrint(doc, 64);
+		/* 将64位的指纹码分段做key */
 		long[] keys = splitFingerPrint(simvalue);
 		List<Long> tmpKeyList = new ArrayList<Long>();
 		for (long k : keys) {
 			tmpKeyList.add(k);
 		}
+		/*查询到的符合海明距离的Set*/
 		Set<String> tmpUrlSet = new HashSet<String>();
 		try {
 			List<SimHashBean> simhashBeanList = tbSimHashQueryDao.getListBean(tmpKeyList, zk);
-			for(SimHashBean bean : simhashBeanList) {
-				if(bean == null) {
-					continue;
-				} 
-				Map<String,Long> resultMap = bean.getMap();
-				if(resultMap == null || resultMap.size() == 0) {
+			for (SimHashBean bean : simhashBeanList) {
+				if (bean == null) {
 					continue;
 				}
-				for(Entry<String,Long> entry : resultMap.entrySet()) {
-					if(tmpUrlSet.contains(entry.getKey())) {
+				Map<String, Long> resultMap = bean.getMap();
+				if (resultMap == null || resultMap.size() == 0) {
+					continue;
+				}
+				for (Entry<String, Long> entry : resultMap.entrySet()) {
+					if (tmpUrlSet.contains(entry.getKey())) {
 						continue;
 					}
-					if(sft.hammingDistance(entry.getValue(), simvalue) <= 6) {
+					if (sft.hammingDistance(entry.getValue(), simvalue) <= 6) {
 						tmpUrlSet.add(entry.getKey());
 					}
 				}
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 		return new ArrayList<String>(tmpUrlSet);
 	}
-	
-	
-	
+
 	public long[] splitFingerPrint(Long simhash) {
 		StringBuilder sb = new StringBuilder();
 		String[] splitHashValue = new String[9];
@@ -247,7 +252,7 @@ public class SimHashForMassDataDuplicate {
 	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws Exception {
 		SimHashForMassDataDuplicate utils = SimHashForMassDataDuplicate.getInstance();
-		File[] files = new File("E:\\corpus\\duplicate").listFiles();
+		File[] files = new File("D:\\corpus\\duplicate\\duplicate_raws_version0").listFiles();
 		InputStream in = null;
 		BufferedReader br = null;
 		int i = 0;
@@ -272,7 +277,7 @@ public class SimHashForMassDataDuplicate {
 					String title = splits[2];
 					String raw = RegexUtils.cleanParaAndImgLabel(splits[3]);
 					// long a = System.currentTimeMillis();
-					utils.addToRAM(splits[1]+":" +title , title + raw);
+					utils.addToRAM(splits[1] + ":" + title, title + raw);
 					// System.out.println(System.currentTimeMillis() - a);
 					line = br.readLine();
 					if (i % 5000 == 0) {
@@ -305,7 +310,7 @@ public class SimHashForMassDataDuplicate {
 		}
 
 		try {
-			in = new FileInputStream(new File("E:\\corpus\\duplicate\\xaa"));
+			in = new FileInputStream(new File("D:\\corpus\\duplicate\\duplicate_raws_version0\\xaa"));
 			br = new BufferedReader(new InputStreamReader(in));
 			String line;
 			line = br.readLine();
@@ -327,22 +332,19 @@ public class SimHashForMassDataDuplicate {
 				if (c % 1000 == 0) {
 					System.out.println(sum * 1.0 / c);
 				}
-				 if (list.size() == 1) {
-				 line = br.readLine();
-				 continue;
-				 }
-				 FileUtils.write(new File("D://simhashResult"), String.format(">>>>>>%s:%s\n",
-				 splits[1], title),
-				 "utf-8", true);
-				 for (String url : list) {
-				 if (url.equals(splits[1] + ":" + title)) {
-				 continue;
-				 }
-				 FileUtils.write(new File("D://simhashResult"), String.format("%s\n", url),
-				 "utf-8", true);
-				 }
-				 FileUtils.write(new File("D://simhashResult"), "*************************\n",
-				 "utf-8", true);
+				if (list.size() == 1) {
+					line = br.readLine();
+					continue;
+				}
+				FileUtils.write(new File("D://simhashResult"), String.format(">>>>>>%s:%s\n", splits[1], title),
+						"utf-8", true);
+				for (String url : list) {
+					if (url.equals(splits[1] + ":" + title)) {
+						continue;
+					}
+					FileUtils.write(new File("D://simhashResult"), String.format("%s\n", url), "utf-8", true);
+				}
+				FileUtils.write(new File("D://simhashResult"), "*************************\n", "utf-8", true);
 				line = br.readLine();
 				c++;
 			}

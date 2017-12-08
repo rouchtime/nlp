@@ -3,10 +3,7 @@ package task;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Random;
-
 import org.apache.commons.io.FileUtils;
-
 import com.aliasi.classify.Classified;
 import com.aliasi.classify.JointClassifier;
 import com.aliasi.classify.JointClassifierEvaluator;
@@ -16,16 +13,10 @@ import com.aliasi.corpus.ObjectHandler;
 import com.aliasi.io.LogLevel;
 import com.aliasi.io.Reporter;
 import com.aliasi.io.Reporters;
-import com.aliasi.stats.Statistics;
 import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.AbstractExternalizable;
 import com.aliasi.util.Factory;
-import com.aliasi.util.Strings;
-
-import tokenizer.HanLPTokenizerFactory;
-import tokenizer.JiebaTokenizerFactory;
 import tokenizer.SpecialWordSplitTokenizerFactory;
-import tokenizer.StopWordTokenierFactory;
 
 public class EmMain {
 
@@ -48,7 +39,6 @@ public class EmMain {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 
 		long startTime = System.currentTimeMillis();
-
 		File corpusPath = new File("D:\\20news-bydate");
 
 		System.out.println("CORPUS PATH=" + corpusPath);
