@@ -73,10 +73,9 @@ public class LdaWormbase {
                           burninEpochs,
                           sampleLag,
                           numSamples,
-
                           new Random(randomSeed),
                           handler);
-
+        
         int maxWordsPerTopic = 200;
         int maxTopicsPerDoc = 10;
         boolean reportTokens = true;

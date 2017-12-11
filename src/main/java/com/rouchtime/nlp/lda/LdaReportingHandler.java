@@ -55,7 +55,7 @@ public class LdaReportingHandler implements ObjectHandler<LatentDirichletAllocat
 			for (int word = 0; word < numWords; ++word)
 				counter.set(Integer.valueOf(word), sample.topicWordCount(topic, word));
 			List<Integer> topWords = counter.keysOrderedByCountList();
-			logger.debug("\nTOPIC " + topic + "  (total count=" + topicCount + ")\n");
+			logger.debug("TOPIC " + topic + "  (total count=" + topicCount + ")\n");
 			logger.debug("SYMBOL             WORD    COUNT   PROB          Z\n");
 			logger.debug("--------------------------------------------------\n");
 			for (int rank = 0; rank < maxWordsPerTopic && rank < topWords.size(); ++rank) {
