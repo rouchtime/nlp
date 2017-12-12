@@ -1,3 +1,4 @@
+a
 b
 bl
 begin
@@ -63,9 +64,10 @@ v
 vd
 vf
 vg
+vn
+an
 vi
 vl
-vn
 vshi
 vx
 vyou
@@ -96,3 +98,4 @@ yg
 z
 zg
 en
+new_not_n

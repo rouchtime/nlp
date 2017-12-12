@@ -1,7 +1,5 @@
 package com.rouchtime.nlp.lda;
 
-import com.aliasi.cluster.LatentDirichletAllocation;
-
 import com.aliasi.corpus.ObjectHandler;
 
 import com.aliasi.symbol.SymbolTable;

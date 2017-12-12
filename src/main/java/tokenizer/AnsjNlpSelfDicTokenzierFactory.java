@@ -66,9 +66,9 @@ public class AnsjNlpSelfDicTokenzierFactory implements Serializable, TokenizerFa
 			result = NlpAnalysis.parse(text, dicLibrary.get("userdefine"));
 
 			for (Term term : result.getTerms()) {
-//				if (term.getName().length() <= 1) {
-//					continue;
-//				}
+				if (term.getName().length() <= 1) {
+					continue;
+				}
 				parse.add(term.getName() + "/" + term.getNatureStr());
 
 			}

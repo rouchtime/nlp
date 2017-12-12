@@ -42,10 +42,10 @@ public class LoadConf {
 	}
 
 	public boolean chkProperty(String _key) {
-		return prop.containsKey(_key);
+		return 	rb.containsKey(_key);
 	}
 
 	public String getProperty(String _key) {
-		return prop.getProperty(_key);
+		return 	rb.getString(_key);
 	}
 }
